@@ -1,0 +1,23 @@
+model_name: xgb_wp_1
+CATALYTIC: no
+WP: yes
+booster: gbtree
+objective: binary:logistic
+eval_metric: logloss
+eta: 0.0382064
+gamma: 1.1903157e-05
+subsample: 0.72
+colsample_bytree: 0.5714286
+max_depth: 5
+min_child_weight: 13
+monotone_constraints:
+- 1.0
+- 0.0
+- -1.0
+- -1.0
+- -1.0
+- -1.0
+- 1.0
+nrounds: 376.0
+test_loss: 0.4395671
+
