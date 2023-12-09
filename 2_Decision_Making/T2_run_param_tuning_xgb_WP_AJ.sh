@@ -9,4 +9,4 @@
 ## MORE RAM
 #$ -l m_mem_free=10G
 
-Rscript --vanilla param_tuning.R ${SGE_TASK_ID} FALSE TRUE
+Rscript --vanilla T2_param_tuning_xgb.R ${SGE_TASK_ID} FALSE TRUE
