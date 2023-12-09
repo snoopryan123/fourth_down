@@ -22,7 +22,7 @@ print(
 ################################################################################
 
 ### COMPUTE `OPTIMAL` FOURTH DOWN DECISIONS
-fname = "results_confusion_matrix/ddf_wp_se.csv"
+fname = "results_humility/ddf_wp_se.csv"
 if (file.exists(fname)) {
   ddf_wp_se = read_csv(fname)
 } else {
@@ -77,7 +77,7 @@ plot_overconfidence =
   ylab("proportion of fourth-down plays from 2018-2022\n belonging to a given boot% decision category ") +
   theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1, size=15))
 # plot_overconfidence
-ggsave("results_confusion_matrix/plot_overconfidence.png", 
+ggsave("results_humility/plot_overconfidence.png", 
        plot_overconfidence, width=11, height=8)
 
 plot1_df %>%
@@ -101,7 +101,7 @@ plot_freq =
   xlab("estimated gain in win probability\nby making the estimated optimal decision") +
   theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1, size=15))
 # plot_freq
-ggsave("results_confusion_matrix/plot_freq.png", 
+ggsave("results_humility/plot_freq.png", 
        plot_freq, width=9, height=8)
 
 
@@ -120,7 +120,7 @@ plays_summary_df =
 plays_summary_df
 
 plays_summary_gt = gt(plays_summary_df)
-gtsave(plays_summary_gt, "results_confusion_matrix/plays_summary_gt.png")
+gtsave(plays_summary_gt, "results_humility/plays_summary_gt.png")
 
 
 ################################################################################
@@ -155,7 +155,7 @@ plot_coach_decs =
   labs(x = xlab_, y="coach") 
 # plot_coach_decs
 
-ggsave(paste0("results_confusion_matrix/plot_coach_decs_b=",boot_threshold,".png"), 
+ggsave(paste0("results_humility/plot_coach_decs_b=",boot_threshold,".png"), 
        plot_coach_decs, width=11, height=14)
 
 ################################################################################
@@ -174,7 +174,7 @@ NflTooConservativeDf =
   group_by(decision) %>%
   summarise(p = sum(made_right_dec)/n())
 # print(NflTooConservativeDf)
-gtsave(gt(NflTooConservativeDf), "results_confusion_matrix/NflTooConservativeDf.png")
+gtsave(gt(NflTooConservativeDf), "results_humility/NflTooConservativeDf.png")
 
 # ### of the confident or lean decisions, how many were right
 # NflTooConservativeDf = 

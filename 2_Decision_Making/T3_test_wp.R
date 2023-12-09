@@ -25,7 +25,7 @@ logloss_xgb_wp_Baldwin_1 = last(xgb_wp_Baldwin_1$evaluation_log$validation_loglo
 print(""); print(rf_R_wp_LockNettleton_model_name); print("");
 rf_R_wp_LockNettleton = train_rf(rf_R_wp_LockNettleton_features, train_set, rf_R_wp_LockNettleton_params, wp=TRUE, reg=TRUE)
 pred_rf_R_wp_LockNettleton = predict(rf_R_wp_LockNettleton, test_set %>% select(all_of(rf_R_wp_LockNettleton_features)))
-logloss_rf_R_wp_LockNettleton = LOGLOSS(test_set$label_win, pred)
+logloss_rf_R_wp_LockNettleton = LOGLOSS(test_set$label_win, pred_rf_R_wp_LockNettleton)
 
 ################################################################################
 

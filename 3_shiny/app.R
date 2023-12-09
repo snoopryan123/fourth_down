@@ -22,7 +22,7 @@ source("header.R")
         # h5("• ignoring EP means faster runtime."),
         
         h4("Uncertainty Settings:"),
-        selectInput("num_B", "number of bootstrap samples (in addition to the observed data sample)", choices = c("0", "25"), selected="25"),
+        selectInput("num_B", "number of bootstrap samples (in addition to the observed data sample)", choices = c("0", "25", "100"), selected="100"),
         # h5("• 0 bootstrap samples means no uncertainty plots."),
         # h5("• fewer bootstrap samples means faster runtime."),
         
