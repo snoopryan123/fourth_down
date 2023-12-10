@@ -7,6 +7,6 @@
 #$ -t 1-100
 #$ -o job_output/$JOB_NAME-$JOB_ID-$TASK_ID.log
 ## MORE RAM
-#$ -l m_mem_free=10G
+#$ -l m_mem_free=20G
 
 Rscript --vanilla D4_stability_analysis.R ${SGE_TASK_ID} 100
