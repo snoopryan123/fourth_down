@@ -49,7 +49,7 @@ for (b in 1:B) {
     dataset_punt_b = punt_df
     dataset_go_b = go_df
   } else { ### bootstrapped data
-    set.seed(3493 + b*299)
+    set.seed(3493 + b*299 + m*7367)
     dataset_wp_b = get_randomized_clustered_bootstrap_dataset(DATASET, wp=WP, phi=phi) 
     dataset_fg_b = get_iid_bootstrap_dataset(fg_df)
     dataset_punt_b = get_iid_bootstrap_dataset(punt_df)
