@@ -63,7 +63,7 @@ fit_coach_model_best <- function(fourth_down_dataset) {
 ### Bootstrap Functions ###
 ###########################
 
-get_randomized_clustered_bootstrap_dataset <- function(dataset, wp, brp) {
+get_randomized_clustered_bootstrap_dataset <- function(dataset, wp, phi) {
   ### randomized cluster bootstrap
   
   ### group_by index: `game_id` for WP, `epoch` for EP
@@ -71,7 +71,7 @@ get_randomized_clustered_bootstrap_dataset <- function(dataset, wp, brp) {
   
   ### sample clusters (GAME or EPOCH, given by `group_name`) with replacement
   all_group_ids = sort(unique(dataset[[group_name]]))
-  num_resample_cb = round(length(all_group_ids)*brp)
+  num_resample_cb = round(length(all_group_ids)*phi)
   group_ids_boot = tibble(
     g = sort(sample(all_group_ids, size=num_resample_cb, replace=TRUE))
   ) %>% mutate(ii = 1:n()) 
@@ -102,5 +102,11 @@ get_randomized_clustered_bootstrap_dataset <- function(dataset, wp, brp) {
   return(df_rcb_2)
 }
 
+get_iid_bootstrap_dataset <- function(dataset) {
+  row_idxs = 1:nrow(dataset)
+  resampled_idxs = sort(sample(row_idxs, size=nrow(dataset), replace=TRUE))
+  dataset_boot = dataset[resampled_idxs, ]
+  dataset_boot
+}
 
 

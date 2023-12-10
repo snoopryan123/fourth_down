@@ -3,7 +3,7 @@
 # m = 1
 # B = 3
 # WP = TRUE
-brp = 0.5 # justified by the simulation study
+phi = 0.5 # justified by the simulation study
 args <- commandArgs(trailingOnly = TRUE)
 m = as.numeric(args[1])
 B = as.numeric(args[2])
@@ -15,24 +15,10 @@ filewd = getwd()
 setwd("..")
 source("00_main.R")
 setwd(filewd)
-fourth_downs_df = all_fourth_downs %>% filter(season %in% 2018:2022)
-# fourth_downs_df = 
-#   fourth_downs_df %>%
-#   select(
-#     posteam, season, posteam_coach, decision_actual, # kicker_player_name, punter_player_name,
-#     yardline_100, ydstogo, down, score_differential, posteam_spread, game_seconds_remaining
-#   )
-
-### load Punt, FG, Go models
-fg_model = load_lm(paste0("fitted_models/fg_model.rds"))
-punt_model = load_lm(paste0("fitted_models/punt_model.rds"))
-go_model = load_lm(paste0("fitted_models/go_model.rds"))
+fourth_downs_df = ALL_fourth_downs %>% filter(season %in% 2018:2022)
 
 ### load XGBoost files
-filewd = getwd()
-setwd("../3_model_selection/xgb_110")
-source("models.R")
-setwd(filewd)
+source("T2_models_xgb.R")
 
 ### these variables are required for `model_fitting_functions`
 model_name = xgb_wp_110_7_model_name
@@ -48,43 +34,52 @@ DATASET = get(dataset_str)
 source("D1_model_fitting_functions.R")
 
 ### fit B bootstrapped WP models
-V1_MODELS = list()
+V1_model_name_WP = model_name
+V1_wp_model_fitList_boot <- list()
+fg_model_fitList_boot <- list()
+punt_model_fitList_boot <- list()
+go_model_fitList_boot <- list()
 for (b in 1:B) {
-  print(paste0("**** bootstrap ", "m=",m,", b=",b,"/B=",B," ****"))
+  print(paste0("**** bootstrap ", ", b=",b,"/B=",B," ****"))
   
   ### get the b^th bootstrap re-sampled datasets
   if (b==1) { ### actual data
-    dataset_b = DATASET
-  } else {
-    set.seed(8553 + m*88 + b*948)
-    dataset_b = get_randomized_clustered_bootstrap_dataset(DATASET, wp=WP, brp=brp) 
+    dataset_wp_b = DATASET
+    dataset_fg_b = fg_df
+    dataset_punt_b = punt_df
+    dataset_go_b = go_df
+  } else { ### bootstrapped data
+    set.seed(3493 + b*299)
+    dataset_wp_b = get_randomized_clustered_bootstrap_dataset(DATASET, wp=WP, phi=phi) 
+    dataset_fg_b = get_iid_bootstrap_dataset(fg_df)
+    dataset_punt_b = get_iid_bootstrap_dataset(punt_df)
+    dataset_go_b = get_iid_bootstrap_dataset(go_df)
   }
   
-  ### fit b^th WP model
-  V1_model_b = fit_V1_model_best(model_name, model_type, dataset_b)
-  ### save b^th WP model
-  V1_MODELS[[b]] = V1_model_b
+  ### fit the b^th bootstrapped models
+  ### fit the b^th WP model
+  V1_model_b = fit_V1_model_best(model_name, model_type, dataset_wp_b)
+  V1_wp_model_fitList_boot[[b]] = V1_model_b
+  ### fit and save the b^th FG Model ###
+  fg_model_fit = fit_fgp_model_best(dataset_fg_b)
+  fg_model_fitList_boot[[b]] = fg_model_fit
+  ### fit and save the b^th Punt Model ###
+  punt_model_fit = fit_punt_eny_model_best(dataset_punt_b)
+  punt_model_fitList_boot[[b]] = punt_model_fit
+  ### fit and save the b^th Convert Model ###
+  go_model_fit = fit_convp_model_best(dataset_go_b)
+  go_model_fitList_boot[[b]] = go_model_fit
 }
 
-### these variables are required for `decision_making_functions`
-V1_model_name_WP = model_name
-V1_wp_model_fitList_boot = V1_MODELS
-V1_model_fitList_boot = NULL #FIXME # EP model not supported...
+### get the decision making functions
 source("D3_decision_making_functions.R")
 
 ### make decisions on set of fourth downs 
 if (model_type == "XGB") {
-  
   ddf = get_all_decision_making(fourth_downs_df, wp=WP, SE=TRUE, coachBaseline=FALSE, bind_w_plays=FALSE) 
-  ddf1 = 
-    ddf %>% 
-    select(
-      prop_decision, decision
-      # decision_intensity_L, decision_intensity, decision_intensity_U
-    ) #%>% mutate(m = m, B = B) 
+  ddf1 = ddf %>% select(prop_decision, decision)
   filename_ddf = paste0("job_output/stability_analysis_ddf_",param_str,".csv")
   write_csv(ddf1, filename_ddf)
-  
 } else {
   stop(paste0("model_type=",model_type," is not supported."))
 }

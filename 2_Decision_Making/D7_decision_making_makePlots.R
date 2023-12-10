@@ -9,7 +9,7 @@ options(warn=-1)
 ### Find Good Example Plays ###
 ###############################
 
-fourth_downs_df_2022 = all_fourth_downs %>% filter(season %in% 2022)
+fourth_downs_df_2022 = ALL_fourth_downs %>% filter(season %in% 2022)
 ddf_2022 = get_all_decision_making(fourth_downs_df_2022, wp=TRUE, SE=TRUE, coachBaseline=FALSE, bind_w_plays=TRUE) 
 ddf_2022_A = 
   ddf_2022 %>% 

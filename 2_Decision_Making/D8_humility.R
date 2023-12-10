@@ -6,7 +6,9 @@ library(gt)
 
 ################################################################################
 df4d = 
-  all_fourth_downs %>% filter(qb_kneel == 0)  %>% 
+  # all_fourth_downs %>% 
+  ALL_fourth_downs %>% 
+  filter(qb_kneel == 0)  %>% 
   filter(era4==1) %>%
   filter(row_idx != 870355) ### play weird...
 ### check 

@@ -157,3 +157,33 @@ tail(
   )
 )
 
+################################################################################
+
+#### dataframe of ALL fourth down decisions
+ALL_fourth_downs = 
+  data_full_0A %>%
+  filter(down==4) %>%
+  mutate(
+    decision_actual = case_when(
+      !is.na(kicker_player_name) ~ "FG",
+      !is.na(punter_player_name) ~ "Punt",
+      TRUE ~ "Go"
+    )) %>%
+  mutate(
+    label_decision_actual = case_when(
+      decision_actual == "Go" ~ 0,
+      decision_actual == "FG" ~ 1,
+      decision_actual == "Punt" ~ 2
+    )
+  )
+ALL_fourth_downs$fgp = as.numeric(ALL_fourth_downs$decision_actual == "FG")
+ALL_fourth_downs$puntp = as.numeric(ALL_fourth_downs$decision_actual == "Punt")
+tail(
+  ALL_fourth_downs %>% select(
+    row_idx, posteam, season, posteam_coach, decision_actual,label_decision_actual,
+    # kicker_player_name, punter_player_name,
+    yardline_100, ydstogo, down, score_differential, posteam_spread, game_seconds_remaining,
+    fgp, puntp
+  )
+)
+

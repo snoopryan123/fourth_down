@@ -8,23 +8,9 @@ setwd("..")
 source("00_main.R")
 setwd(filewd)
 
-### load Punt, FG, Go models
-fg_model_obs = load_lm(paste0("fitted_models/fg_model.rds"))
-punt_model_obs = load_lm(paste0("fitted_models/punt_model.rds"))
-go_model_obs = load_lm(paste0("fitted_models/go_model.rds"))
-fg_model = fg_model_obs
-punt_model = punt_model_obs
-go_model = go_model_obs
-
 ### load XGBoost files
-filewd = getwd()
-setwd("../3_model_selection/xgb_110")
-source("models.R")
-setwd(filewd)
-filewd00 = getwd()
-setwd("../3_model_selection/coach_decision_model/")
-source("coach_decision_models.R")
-setwd(filewd00)
+source("T2_models_xgb.R")
+source("D2_coach_decision_models.R")
 
 ### these variables are required for `model_fitting_functions`
 V1_model_name_WP = xgb_wp_110_7_model_name
@@ -40,25 +26,22 @@ DATASET = get(dataset_str)
 source("D1_model_fitting_functions.R")
 
 ### load models
-# V1_model_fitList_boot <- list()
 V1_wp_model_fitList_boot <- list()
+fg_model_fitList_boot <- list()
+punt_model_fitList_boot <- list()
+go_model_fitList_boot <- list()
 for (b in 1:B) {
   print(paste0("loading boostrap b = ", b, " of B = ", B))
-  
-  # ### bootstrapped EP models
-  # if (V1_model_type_WP_EP == "MLR") {
-  #   V1_model_fitList_boot[[b]] = load_lm(paste0("fitted_models/", paste0(V1_model_name_EP, "_b", b), ".rds")) 
-  # } else if (V1_model_type_WP_EP == "XGB") {
-  #   V1_model_fitList_boot[[b]] = xgb.load(paste0("fitted_models/", paste0(V1_model_name_EP, "_b", b), ".rds"))
-  # } 
-  
-  ### bootstrapped WP models
+  ### bootstrapped models
   V1_wp_model_fitList_boot[[b]] = xgb.load(paste0("fitted_models/", paste0(V1_model_name_WP, "_b", b), ".rds"))
-  
-  
+  fg_model_fitList_boot[[b]] = load_lm(paste0("fitted_models/", "fg_model", "_b", b, ".rds"))
+  punt_model_fitList_boot[[b]] = load_lm(paste0("fitted_models/", "punt_model", "_b", b, ".rds"))
+  go_model_fitList_boot[[b]] = load_lm(paste0("fitted_models/", "go_model", "_b", b, ".rds"))
 }
-# V1_model_obs = V1_model_fitList_boot[[1]]
 V1_wp_model_obs = V1_wp_model_fitList_boot[[1]]
+fg_model_obs = fg_model_fitList_boot[[1]]
+punt_model_obs = punt_model_fitList_boot[[1]]
+go_model_obs = go_model_fitList_boot[[1]]
 coach_model = xgb.load(paste0("fitted_models/", "coach_model.rds")) 
 
 
