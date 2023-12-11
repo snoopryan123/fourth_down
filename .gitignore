@@ -4,7 +4,6 @@
 *.RData    
 *.Rhistory
 *.json
-*.png
 old
 old/*
 OLD
