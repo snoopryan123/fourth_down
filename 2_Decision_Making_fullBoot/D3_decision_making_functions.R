@@ -562,9 +562,9 @@ calculate_Vs_bootstrap <- function(dataset, wp, b_max=B, custom_conv_prob=NULL, 
       #FIXME
       model_fit_b = V1_model_fitList_boot[[b]]
     }
-    fg_model_fit_b = fg_model_obs
-    punt_model_fit_b = punt_model_obs
-    go_model_fit_b = go_model_obs
+    fg_model_fit_b = fg_model_fitList_boot[[b]]
+    punt_model_fit_b = punt_model_fitList_boot[[b]]
+    go_model_fit_b = go_model_fitList_boot[[b]]
   
     Vs_b = calculate_Vs(dataset, if (wp) V1_wp_model_fit_b else model_fit_b, fg_model_fit_b, punt_model_fit_b, go_model_fit_b, og_method=FALSE, wp=wp, custom_conv_prob=custom_conv_prob)
     Vs_b$b = b
@@ -700,9 +700,9 @@ calculate_Vs_xp2pc_bootstrap <- function(dataset, wp, b_max=B, custom_conv_prob=
       #FIXME
       model_fit_b = V1_model_fitList_boot[[b]]
     }
-    fg_model_fit_b = fg_model_obs
-    punt_model_fit_b = punt_model_obs
-    go_model_fit_b = go_model_obs
+    fg_model_fit_b = fg_model_fitList_boot[[b]]
+    punt_model_fit_b = punt_model_fitList_boot[[b]]
+    go_model_fit_b = go_model_fitList_boot[[b]]
     
     Vs_b = calculate_Vs_xp2pc(dataset, if (wp) V1_wp_model_fit_b else model_fit_b, fg_model_fit_b, go_model_fit_b, og_method=FALSE, 
                               wp=wp, custom_conv_prob=custom_conv_prob, custom_xp_prob=custom_xp_prob) 

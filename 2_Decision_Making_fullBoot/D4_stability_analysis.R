@@ -36,6 +36,9 @@ source("D1_model_fitting_functions.R")
 ### fit B bootstrapped WP models
 V1_model_name_WP = model_name
 V1_wp_model_fitList_boot <- list()
+fg_model_fitList_boot <- list()
+punt_model_fitList_boot <- list()
+go_model_fitList_boot <- list()
 for (b in 1:B) {
   print(paste0("**** bootstrap ", ", b=",b,"/B=",B," ****"))
   
@@ -45,13 +48,6 @@ for (b in 1:B) {
     dataset_fg_b = fg_df
     dataset_punt_b = punt_df
     dataset_go_b = go_df
-    
-    ### fit and save the b^th FG Model ###
-    fg_model_obs = fit_fgp_model_best(dataset_fg_b)
-    ### fit and save the b^th Punt Model ###
-    punt_model_obs = fit_punt_eny_model_best(dataset_punt_b)
-    ### fit and save the b^th Convert Model ###
-    go_model_obs = fit_convp_model_best(dataset_go_b)
   } else { ### bootstrapped data
     set.seed(3493 + b*299 + m*7367)
     dataset_wp_b = get_randomized_clustered_bootstrap_dataset(DATASET, wp=WP, phi=phi) 
@@ -64,6 +60,15 @@ for (b in 1:B) {
   ### fit the b^th WP model
   V1_model_b = fit_V1_model_best(model_name, model_type, dataset_wp_b)
   V1_wp_model_fitList_boot[[b]] = V1_model_b
+  ### fit and save the b^th FG Model ###
+  fg_model_fit = fit_fgp_model_best(dataset_fg_b)
+  fg_model_fitList_boot[[b]] = fg_model_fit
+  ### fit and save the b^th Punt Model ###
+  punt_model_fit = fit_punt_eny_model_best(dataset_punt_b)
+  punt_model_fitList_boot[[b]] = punt_model_fit
+  ### fit and save the b^th Convert Model ###
+  go_model_fit = fit_convp_model_best(dataset_go_b)
+  go_model_fitList_boot[[b]] = go_model_fit
 }
 
 ### get the decision making functions
