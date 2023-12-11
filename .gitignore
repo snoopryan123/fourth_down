@@ -15,7 +15,9 @@ OLD/*
 
 !ep0.rds
 !ep00.rds
+
 !fitted_models
+!*/fitted_models/*
 !param_tuning_results_FINAL
 
 !plots_decisions
