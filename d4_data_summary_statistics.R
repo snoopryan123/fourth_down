@@ -5,9 +5,6 @@ source("00_main.R")
 ### # plays  ###
 ###########################################
 
-# num fourth downs vs. num first downs
-sum(data_full_WP$down1)/sum(data_full_WP$down4)
-
 # num first downs and num plays
 data_full_WP %>%
   group_by(down) %>%
@@ -24,6 +21,9 @@ all_fourth_downs %>%
   group_by(decision_actual) %>%
   summarise(count = n()) %>%
   mutate(p = count/sum(count))
+
+# num fourth downs vs. num first downs
+sum(data_full_WP$down1)/sum(data_full_WP$down4)
 
 ####################################
 ### plot Punter Quality Rankings ###
