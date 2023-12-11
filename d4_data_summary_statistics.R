@@ -41,8 +41,8 @@ pq_plot = data_full_0A %>%
   ggplot(aes(y = fct_reorder(punter_name, pq_mean), x = pq_mean)) +
   geom_point() +
   xlab("career mean punter quality\n (>250 attempts, rookie season >2006)") + ylab("punter")
-pq_plot
-ggsave("plot_pq.png", pq_plot, width=8, height=12)
+# pq_plot
+ggsave("data_plots/plot_pq.png", pq_plot, width=8, height=12)
 
 ####################################
 ### plot Kicker Quality Rankings ###
@@ -60,8 +60,8 @@ kq_plot = data_full_0A %>%
   ggplot(aes(y = fct_reorder(kicker_player_name, kq_mean), x = kq_mean)) +
   geom_point() +
   xlab("career mean kicker quality\n (>100 attempts, rookie season >2006)") + ylab("kicker")
-kq_plot
-ggsave("plot_kq.png", kq_plot, width=8, height=12)
+# kq_plot
+ggsave("data_plots/plot_kq.png", kq_plot, width=8, height=12)
 
 ##################################
 ### plot Team Quality Rankings ###
@@ -89,8 +89,8 @@ plot_qbq = data_full_0A %>%
   # xlab("career mean quarterback quality") +
   xlab("career mean quarterback quality\n (>1750 attempts, rookie szn >2006)") +
   ylab("quarterback")
-plot_qbq
-ggsave("plot_TQ_qbq.png", plot_qbq, width=7, height=11)
+# plot_qbq
+ggsave("data_plots/plot_TQ_qbq.png", plot_qbq, width=7, height=11)
 
 plot_oq_rot = data_full_0A %>%
   filter(season == 2021) %>%
@@ -101,8 +101,8 @@ plot_oq_rot = data_full_0A %>%
   scale_x_continuous(breaks=seq(-10,10,by=0.50)) +
   xlab("mean team non-quarterback\n offensive quality in 2021") +
   ylab("team")
-plot_oq_rot
-ggsave("plot_TQ_oq_rot.png", plot_oq_rot, width=6, height=9)
+# plot_oq_rot
+ggsave("data_plots/plot_TQ_oq_rot.png", plot_oq_rot, width=6, height=9)
 
 # plot_dq_dt = data_full_0A %>%
 #   filter(season == 2021) %>%
@@ -124,8 +124,8 @@ plot_dq_dt_againstPass = data_full_0A %>%
   scale_x_continuous(breaks=seq(-10,10,by=0.50)) +
   xlab("mean team defensive quality\n against the pass in 2021") +
   ylab("team")
-plot_dq_dt_againstPass
-ggsave("plot_TQ_dq_dt_againstPass.png", plot_dq_dt_againstPass, width=6, height=9)
+# plot_dq_dt_againstPass
+ggsave("data_plots/plot_TQ_dq_dt_againstPass.png", plot_dq_dt_againstPass, width=6, height=9)
 
 plot_dq_dt_againstRun = data_full_0A %>%
   filter(season == 2021) %>%
@@ -136,12 +136,13 @@ plot_dq_dt_againstRun = data_full_0A %>%
   scale_x_continuous(breaks=seq(-10,10,by=0.50)) +
   xlab("mean team defensive quality\n against the run in 2021") +
   ylab("team")
-plot_dq_dt_againstRun
-ggsave("plot_TQ_dq_dt_againstRun.png", plot_dq_dt_againstRun, width=6, height=9)
+# plot_dq_dt_againstRun
+ggsave("data_plots/plot_TQ_dq_dt_againstRun.png", plot_dq_dt_againstRun, width=6, height=9)
 
 
 plot_tq = plot_grid(plot_qbq, plot_oq_rot, plot_dq_dt_againstPass, plot_dq_dt_againstRun, nrow=1)
-save_plot(paste0("plot_TQ.png"), plot_tq, base_width=28, base_height=10)
+save_plot(paste0("data_plots/plot_TQ.png"), plot_tq, base_width=28, base_height=10)
+
 
 
 

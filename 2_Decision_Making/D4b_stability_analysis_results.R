@@ -2,8 +2,6 @@
 source("../0_clean_lm.R")
 M = 100
 B = 100
-# M = 100
-# B = 500
 
 ddf_all = tibble()
 for (m in 1:M) {
