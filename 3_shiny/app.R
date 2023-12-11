@@ -17,12 +17,13 @@ source("header.R")
         actionButton("generate_plots", "Generate Plots", class = "btn-warning"),
         
         h4("Settings:"),
-        selectInput("ignore_EP", "ignore expected points models", choices = c("no", "yes"), selected="yes"),
+        # selectInput("ignore_EP", "ignore expected points models", choices = c("no", "yes"), selected="yes"),
+        selectInput("ignore_EP", "ignore expected points models", choices = c("yes"), selected="yes"),
         selectInput("dec_conf_str", "decision confidence label", choices = c("TRUE", "FALSE"), selected="FALSE"),
         # h5("• ignoring EP means faster runtime."),
         
         h4("Uncertainty Settings:"),
-        selectInput("num_B", "number of bootstrap samples (in addition to the observed data sample)", choices = c("0", "25", "100"), selected="100"),
+        selectInput("num_B", "number of bootstrap samples", choices = c("0", "25", "100"), selected="25"),
         # h5("• 0 bootstrap samples means no uncertainty plots."),
         # h5("• fewer bootstrap samples means faster runtime."),
         
@@ -30,15 +31,16 @@ source("header.R")
         selectInput("use_custom_conv_prob", "use custom conversion probability", choices = c("TRUE", "FALSE"), selected="FALSE"),
         sliderInput("custom_conv_prob", "custom conversion probability (only used if above is set to TRUE)", min = 0, max = 1, value = 0.50, step=0.01, pre = ""),
         
-        h4("Post-TD Settings:"),
-        selectInput("post_TD", "post-TD decision (extra point vs. conversion)", choices = c("TRUE", "FALSE"), selected="FALSE"),
-        selectInput("post_TD_custom_conv_prob", "use post-TD custom conv prob (e.g. 0.48)", choices = c("TRUE", "FALSE"), selected="TRUE"),
-        selectInput("post_TD_custom_xp_prob", "use post-TD custom extra point prob (e.g. 0.94)", choices = c("TRUE", "FALSE"), selected="TRUE"),
-        sliderInput("custom_post_TD_conv_prob", "custom conversion probability (only used if above is set to TRUE)", min = 0, max = 1, value = 0.48, step=0.01, pre = ""),
-        sliderInput("custom_xp_prob", "custom extra point probability (only used if above is set to TRUE)", min = 0, max = 1, value = 0.94, step=0.01, pre = ""),
+        # h4("Post-TD Settings:"),
+        # selectInput("post_TD", "post-TD decision (extra point vs. conversion)", choices = c("TRUE", "FALSE"), selected="FALSE"),
+        # selectInput("post_TD_custom_conv_prob", "use post-TD custom conv prob (e.g. 0.48)", choices = c("TRUE", "FALSE"), selected="TRUE"),
+        # selectInput("post_TD_custom_xp_prob", "use post-TD custom extra point prob (e.g. 0.94)", choices = c("TRUE", "FALSE"), selected="TRUE"),
+        # sliderInput("custom_post_TD_conv_prob", "custom conversion probability (only used if above is set to TRUE)", min = 0, max = 1, value = 0.48, step=0.01, pre = ""),
+        # sliderInput("custom_xp_prob", "custom extra point probability (only used if above is set to TRUE)", min = 0, max = 1, value = 0.94, step=0.01, pre = ""),
 
         h4("Game State:"),
         sliderInput("score_differential", "score differential", min = -30, max = 30, value = 0, step=1, pre = ""),
+        sliderInput("total_score", "total score", min = 0, max = 120, value = 0, step=1, pre = ""),
         # sliderInput("game_seconds_remaining", "game seconds remaining", min = 0, max = 3600, value = 720, step=60, pre = ""),
         numericInput("game_seconds_remaining", "game seconds remaining", min = 0, max = 3600, value = 720, step=1),
         sliderInput("posteam_spread", "point spread (of the offensive team)", min = -17, max = 17, value = 0, step=0.5, pre = ""),
@@ -220,6 +222,7 @@ server <- function(input, output, session) {
       yardline_100 = isolate(input$yardline),
       ydstogo = isolate(input$ydstogo),
       score_differential = isolate(input$score_differential),
+      total_score = isolate(input$total_score),
       game_seconds_remaining = isolate(input$game_seconds_remaining),
       home = isolate(case_when(input$home == "home" ~ 1, input$home == "away" ~ 0)),
       receive_2h_ko = isolate(case_when(input$receive_2h_ko == "yes" ~ 1, input$receive_2h_ko == "no" ~ 0)),
@@ -278,10 +281,11 @@ server <- function(input, output, session) {
     output$loading_spinner = renderUI({
       withSpinner(uiOutput("loading_spinner"), type=5, color=loading_color)
     })
-    
+
     ignore_EP = isolate(input$ignore_EP == "yes") ### ignore EP models
     uu = isolate(as.numeric(input$num_B)) != 0 ### ignore uncertainty
-    post_TD = as.logical(isolate(input$post_TD)) ### analyze a post-TD decision (extra point vs. 2 pt conversion)
+    # post_TD = as.logical(isolate(input$post_TD)) ### analyze a post-TD decision (extra point vs. 2 pt conversion)
+    post_TD = FALSE
     custom_conv_prob_ = if (as.logical(isolate(input$use_custom_conv_prob))) input$custom_conv_prob else NULL
     
     if (post_TD) {
@@ -295,7 +299,7 @@ server <- function(input, output, session) {
       ddf_post_TD = suppressWarnings(
         get_full_decision_making(play_df=play_df, wp=TRUE, SE=uu, 
                                  custom_conv_prob=custom_conv_prob_, custom_xp_prob = custom_xp_prob_,
-                                 post_TD=TRUE)
+                                 coachBaseline=TRUE, post_TD=TRUE)
       )
       decision_post_TD_df = get_post_TD_decision(ddf_post_TD, include_uncertainty=uu) 
       dec_conf_str = isolate(as.logical(input$dec_conf_str)) ### decision confidence string
@@ -306,13 +310,13 @@ server <- function(input, output, session) {
       # browser()
     } else {
       ### FOURTH DOWN
-      
+
       ### generate WP plots
       # browser(); ddf_wp = get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=FALSE);
       # browser()
       # get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=FALSE, custom_conv_prob=custom_conv_prob_)
       ddf_wp = suppressWarnings(
-        get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=FALSE, custom_conv_prob=custom_conv_prob_, post_TD=FALSE)
+        get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=FALSE, custom_conv_prob=custom_conv_prob_, coachBaseline=TRUE, post_TD=FALSE)
       )
       
       list_heatmap_wp = plot_4thDownHeatmap(ddf_wp, wp=TRUE, og_method=FALSE, title=TRUE, SE=FALSE, 
@@ -352,11 +356,11 @@ server <- function(input, output, session) {
       
       if (uu) {
         ddf_wp_se = suppressWarnings(
-          get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=TRUE, b_max=isolate(as.numeric(input$num_B)), custom_conv_prob=custom_conv_prob_)
+          get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=TRUE, b_max=isolate(as.numeric(input$num_B)), custom_conv_prob=custom_conv_prob_, coachBaseline = TRUE)
         )
         if (!ignore_EP) {
           ddf_ep_se = suppressWarnings(
-            get_full_decision_making(play_df=generate_gamestate_df(), wp=FALSE, SE=TRUE, b_max=isolate(as.numeric(input$num_B)), custom_conv_prob=custom_conv_prob_)
+            get_full_decision_making(play_df=generate_gamestate_df(), wp=FALSE, SE=TRUE, b_max=isolate(as.numeric(input$num_B)), custom_conv_prob=custom_conv_prob_, coachBaseline = TRUE)
           )
         }
       }

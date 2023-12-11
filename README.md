@@ -22,3 +22,5 @@
   * make the fourth-down decision plots (exs. 1 thru 5 in the paper) in `D7_decision_making_makePlots.R`
   * compare traditional decision making to ours and evaluate coaches in `D8_humility.R`
 
+### 3. Shiny app in `3_shiny`
+* run `app.R` for an interactive fourth-down decision making Shiny app!

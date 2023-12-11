@@ -11,19 +11,11 @@ library(gt)
 
 #FIXME
 ### 4th down decision making directory
-shiny_wd = getwd()
 source("../0_clean_lm.R")
-setwd("../4_Decision_Making")
-### LOAD 4TH DOWN PLOTTING FUNCTIONS
-source("decision_making_bootstrap_main.R")
-source("decision_making_loadModels.R")
-source("decision_making_functions.R")
-### LOAD MLR AND XGB MODEL FUNCTIONS
-setwd("../3_model_selection/mlr_110")
-source("models.R")
-setwd("../xgb_110")
-source("models.R")
-### set wd back
+shiny_wd = getwd()
+setwd("../2_Decision_Making")
+source("D3_decision_making_functions.R")
+source("D6_loadModels.R")
 setwd(shiny_wd)
 
 #############

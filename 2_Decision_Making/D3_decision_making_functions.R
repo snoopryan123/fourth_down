@@ -863,20 +863,25 @@ get_all_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_m
     result = Vs
   }
   
+  # browser()
   if (coachBaseline) {
     result = result %>%
       mutate(get_coach_decision_freqs(., coach_model)) %>%
       mutate(V_baseline = C_Go*V_go + C_FG*V_fg + C_Punt*V_punt)
     
-    result = result %>%
-      rowwise() %>%
-      mutate(V_actual = case_when(
-        decision_actual == "Go" ~ V_go,
-        decision_actual == "FG" ~ V_fg,
-        decision_actual == "Punt" ~ V_punt,
-      )) %>%
-      ungroup() %>%
-      mutate(V_added = V_actual - V_baseline) 
+    if ("decision_actual" %in% names(result)) {
+      result = result %>%
+        rowwise() %>%
+        mutate(V_actual = case_when(
+          decision_actual == "Go" ~ V_go,
+          decision_actual == "FG" ~ V_fg,
+          decision_actual == "Punt" ~ V_punt,
+          TRUE ~ NA_real_
+        )) %>%
+        ungroup() %>%
+        mutate(V_added = V_actual - V_baseline) 
+    }
+    
   }
   return(result)
 }
@@ -1393,6 +1398,7 @@ plot_gt_4th_down_summary <- function(play_df, ddf, decision_df=NULL, SE=FALSE, w
   a3[[paste0(wpstr, " if fail")]] = percent_me(a3[[paste0(wpstr, " if fail")]])
   a3[[paste0(wpstr, " if succeed")]] = percent_me(a3[[paste0(wpstr, " if succeed")]])
   a3[[paste0("SD of ", wpstr)]] = percent_me(a3[[paste0("SD of ", wpstr)]])
+  # browser()
   a3[["baseline coach %"]] = percent_me(a3[["baseline coach %"]])
   
   ### CI in WP gain
