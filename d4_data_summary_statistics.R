@@ -21,9 +21,14 @@ all_fourth_downs %>%
   group_by(decision_actual) %>%
   summarise(count = n()) %>%
   mutate(p = count/sum(count))
+dim(all_fourth_downs)
+dim(ALL_fourth_downs)
 
 # num fourth downs vs. num first downs
 sum(data_full_WP$down1)/sum(data_full_WP$down4)
+
+### WP variables
+names(data_full_WP)
 
 ####################################
 ### plot Punter Quality Rankings ###
