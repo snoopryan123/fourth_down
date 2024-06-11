@@ -51,28 +51,31 @@ for (b in 1:B) {
     dataset_go_b = get_iid_bootstrap_dataset(go_df)
   }
   
-  # ### fit the b^th bootstrapped models ###
-  # ### fit the b^th WP model
-  # V1_model_b = fit_V1_model_best(model_name, model_type, dataset_wp_b)
-  # model_wp_filename = paste0("fitted_models/", model_name, "_b", b, ".rds")
-  # xgb.save(V1_model_b, model_wp_filename)
-  # ### fit and save the b^th FG Model ###
-  # fg_model_fit = fit_fgp_model_best(dataset_fg_b)
-  # save_lm(fg_model_fit, paste0("fitted_models/", "fg_model", "_b", b, ".rds"))
-  # ### fit and save the b^th Punt Model ###
-  # punt_model_fit = fit_punt_eny_model_best(dataset_punt_b)
-  # save_lm(punt_model_fit, paste0("fitted_models/", "punt_model", "_b", b, ".rds"))
-  # ### fit and save the b^th Conversion Probability Model ###
-  # go_model_fit = fit_convp_model_best(dataset_go_b)
-  # save_lm(go_model_fit, paste0("fitted_models/", "go_model", "_b", b, ".rds"))
-  ### fit and save the b^th Conversion ___ Model ###
+  ### fit the b^th bootstrapped models ###
+  ### fit the b^th WP model
+  V1_model_b = fit_V1_model_best(model_name, model_type, dataset_wp_b)
+  model_wp_filename = paste0("fitted_models/", model_name, "_b", b, ".rds")
+  xgb.save(V1_model_b, model_wp_filename)
+  ### fit and save the b^th FG Model ###
+  fg_model_fit = fit_fgp_model_best(dataset_fg_b)
+  save_lm(fg_model_fit, paste0("fitted_models/", "fg_model", "_b", b, ".rds"))
+  ### fit and save the b^th Punt Model ###
+  punt_model_fit = fit_punt_eny_model_best(dataset_punt_b)
+  save_lm(punt_model_fit, paste0("fitted_models/", "punt_model", "_b", b, ".rds"))
+  ### fit and save the b^th Conversion Probability Model ###
+  go_model_fit = fit_convp_model_best(dataset_go_b)
+  save_lm(go_model_fit, paste0("fitted_models/", "go_model", "_b", b, ".rds"))
+  ### fit and save the b^th Conversion Expected Outcome Models ###
+  go_success_exp_outcome_model_fit = fit_go_exp_outcome_model_best(dataset_go_b, success=TRUE)
+  go_failure_exp_outcome_model_fit = fit_go_exp_outcome_model_best(dataset_go_b, success=FALSE)
+  save_lm(go_success_exp_outcome_model_fit, paste0("fitted_models/", "go_Eoutcome_success_model", "_b", b, ".rds"))
+  save_lm(go_failure_exp_outcome_model_fit, paste0("fitted_models/", "go_Eoutcome_failure_model", "_b", b, ".rds"))
   
   ### plot the decision transition models ###
-  PLOT_DECISION_TRANSITION_MODELS = FALSE
-  # PLOT_DECISION_TRANSITION_MODELS = TRUE
-  if (PLOT_DECISION_TRANSITION_MODELS & b=1) {
+  # PLOT_DECISION_TRANSITION_MODELS = FALSE
+  PLOT_DECISION_TRANSITION_MODELS = TRUE
+  if (b==1 & PLOT_DECISION_TRANSITION_MODELS) {
     ### plot functions found in `0_clean_lm.R`
-    
     ### plot field goal success probability
     plot_fg_prob =  plot_fg_prob_by_kq(fg_model_fit)
     ggsave(paste0("plots_models/plot_fg_prob.png"), width=8, height=5)
@@ -86,34 +89,20 @@ for (b in 1:B) {
     ggsave(paste0("plots_models/plot_conv_prob_1.png"), width=8, height=5)
     plot_conv_prob_2 = plot_conv_2(go_model_fit)
     ggsave(paste0("plots_models/plot_conv_prob_2.png"), width=8, height=5)
-    ### plot
-          
+    ### plot conversion expected outcome given success model
+    plot_go_exp_outcome_success = plot_go_exp_outcome_by_tq(go_success_exp_outcome_model_fit, success=T)
+    ggsave(paste0("plots_models/plot_go_exp_outcome_success.png"), width=30, height=5)
+    plot_go_exp_outcome_success_1 = plot_go_exp_outcome_1(go_success_exp_outcome_model_fit, success=T)
+    ggsave(paste0("plots_models/plot_go_exp_outcome_success_1.png"), width=8, height=5)
+    ### plot conversion expected outcome given failure model
+    plot_go_exp_outcome_failure = plot_go_exp_outcome_by_tq(go_failure_exp_outcome_model_fit, success=F)
+    ggsave(paste0("plots_models/plot_go_exp_outcome_failure.png"), width=30, height=5)
+    plot_go_exp_outcome_failure_1 = plot_go_exp_outcome_1(go_failure_exp_outcome_model_fit, success=F)
+    ggsave(paste0("plots_models/plot_go_exp_outcome_failure_1.png"), width=8, height=5)
   }
   
 }
 
-
-
-### CONVERSION EXPECTED OUTCOME GIVEN SUCCESSFUL CONVERSION
-fit_convp_model_best <- function(go_dataset) {
-  go_dataset_successes = go_dataset %>% filter(convert==1)
-  fit = lm(yards_gained ~
-             bs(yardline_100, df=6) +
-             (down==4):bs(log(ydstogo),4,intercept = FALSE) +
-             qbq_ot_0_sum + oq_rot_0_total_sum + dq_dt_0_againstPass_sum + dq_dt_0_againstRun_sum
-           ,data = go_dataset_successes)
-  fit
-  clean_lm(fit)
-}
-
-go_success_exp_outcome_model_fit = fit_convp_model_best(dataset_go_b)
-go_success_exp_outcome_model_fit
-
-plot_go_exp_outcome_1(go_success_exp_outcome_model_fit, success=T)
-
-
-
-### ytg, ydl, 4 tq
 
 
 

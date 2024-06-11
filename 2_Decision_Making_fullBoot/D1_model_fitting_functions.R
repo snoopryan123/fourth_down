@@ -48,13 +48,35 @@ fit_punt_eny_model_best <- function(punt_data) {
 ### BEST CONVERSION PROBABILITY LOGISTIC REGRESSION MODEL
 fit_convp_model_best <- function(go_dataset) {
   fit = glm(convert ~ 
-              (down==4):bs(log(ydstogo),4,intercept = FALSE) +
+              (down==4):bs(log(ydstogo+1),4,intercept = FALSE) +
               qbq_ot_0_sum + oq_rot_0_total_sum + dq_dt_0_againstPass_sum + dq_dt_0_againstRun_sum
             ,data=go_dataset, family="binomial") 
   clean_lm(fit)
 }
 
-
+### CONVERSION EXPECTED OUTCOME GIVEN SUCCESSFUL CONVERSION
+fit_go_exp_outcome_model_best <- function(go_dataset, success=TRUE) {
+  if (success) {
+    go_dataset_filtered = go_dataset %>% filter(convert==1)
+  } else {
+    go_dataset_filtered = go_dataset %>% filter(convert==0)
+  }
+  if (success) {
+    fit = lm(yards_gained ~
+               (down==4):bs(log(ydstogo),4,intercept = FALSE) +
+               as.numeric(ydstogo==1):bs(yardline_100, df=3) +
+               as.numeric(ydstogo!=1):bs(yardline_100, df=4,intercept = FALSE) +
+               qbq_ot_0_sum + oq_rot_0_total_sum + dq_dt_0_againstPass_sum + dq_dt_0_againstRun_sum
+             ,data = go_dataset_filtered)
+  } else {
+    fit = lm(yards_gained ~
+               (down==4):log(ydstogo+1) +
+               qbq_ot_0_sum + oq_rot_0_total_sum + dq_dt_0_againstPass_sum + dq_dt_0_againstRun_sum
+             ,data = go_dataset_filtered)
+  }
+  fit
+  clean_lm(fit)
+}
 
 ### COACHS' BASELINE DECISION MODEL
 fit_coach_model_best <- function(fourth_down_dataset) {
