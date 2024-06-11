@@ -25,8 +25,6 @@ options(scipen = 999999)
 # options(scipen = 50)
 output_folder = "./plots/"
 theme_set(theme_bw())
-# theme_update(text = element_text(size=16))
-# theme_update(plot.title = element_text(hjust = 0.5))
 theme_update(
   text = element_text(size=20),
   plot.title = element_text(hjust = 0.5),
@@ -34,7 +32,7 @@ theme_update(
   axis.text = element_text(size=20),
   legend.text = element_text(size=20),
   legend.title = element_text(size=20)
-) 
+)
 options(pillar.sigfig=4)
 
 ### install.packages("gt",repos = "http://cran.us.r-project.org")
@@ -162,10 +160,12 @@ plot_fg_prob_by_kq <- function(fg_model, kq=NULL) {
       # sec.axis = sec_axis(~.x+17, breaks = seq(15,70,by=10), name="field goal distance")
       # sec.axis = sec_axis(~.x+17, breaks = seq(17,70,by=10))
     ) +
-    theme(axis.title = element_text(size=20),
-          axis.text = element_text(size=20),
-          legend.text = element_text(size=20),
-          legend.title = element_text(size=20)) +
+    theme(
+      axis.title = element_text(size=27.5),
+      axis.text = element_text(size=20),
+      legend.title = element_text(size=27.5),
+      legend.text = element_text(size=20),
+    ) +
     scale_colour_manual(values = brewer.pal(name="PuRd",n=9)[3:11])
   fg_model_plot
 }
@@ -191,10 +191,12 @@ plot_punt_eny_by_pq <- function(punt_model, pq=NULL) {
     labs(color=" punter\n quality") +
     scale_y_continuous(breaks=seq(0,100,by=10)) +
     scale_x_continuous(breaks=seq(0,100,by=10), limits=c(30,100)) +
-    theme(axis.title = element_text(size=20),
-          axis.text = element_text(size=20),
-          legend.text = element_text(size=20),
-          legend.title = element_text(size=20)) +
+    theme(
+      axis.title = element_text(size=27.5),
+      axis.text = element_text(size=20),
+      legend.title = element_text(size=27.5),
+      legend.text = element_text(size=20),
+    ) +
     scale_colour_manual(values = brewer.pal(name="PuRd",n=9)[3:11])
   punt_model_plot
 }
@@ -213,11 +215,13 @@ plot_conv_prob_by_tq <- function(conv_prob_model) {
       labs(color=" quarterback\n quality", title=title) +
       scale_y_continuous(breaks=seq(0,1,by=0.1)) +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)
@@ -234,14 +238,16 @@ plot_conv_prob_by_tq <- function(conv_prob_model) {
       # facet_wrap(~model) +
       geom_line(size=1) +
       ylab("conversion probability") + xlab("yards to go") +
-      labs(color=" offensive\n quality\n of the\n rest of the\n offensive\n team", title=title) +
+      labs(color=" offensive\n quality\n of the rest\n of the\n offensive team", title=title) +
       scale_y_continuous(breaks=seq(0,1,by=0.1)) +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)
@@ -261,11 +267,13 @@ plot_conv_prob_by_tq <- function(conv_prob_model) {
       labs(color=" defensive\n quality\n against\n the pass", title=title) +
       scale_y_continuous(breaks=seq(0,1,by=0.1)) +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)
@@ -284,11 +292,13 @@ plot_conv_prob_by_tq <- function(conv_prob_model) {
       labs(color=" defensive\n quality\n against\n the run", title=title) +
       scale_y_continuous(breaks=seq(0,1,by=0.1)) +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)
@@ -381,8 +391,12 @@ plot_conv_1 <- function(conv_model, qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_
       rev(brewer.pal(name="Reds",n=9)[3:7])
     ))) +
     theme(
-      axis.title = element_text(size=30)
-    )
+      axis.title = element_text(size=27.5),
+      axis.text = element_text(size=20),
+      legend.title = element_text(size=27.5),
+      legend.text = element_text(size=20),
+      strip.text.x = element_text(size = 20),
+    ) 
   plot_conv
 }
 
@@ -415,7 +429,11 @@ plot_conv_2 <- function(conv_model, qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_
       rev(brewer.pal(name="Reds",n=9)[3:7])
     ))) +
     theme(
-      axis.title = element_text(size=30)
+      axis.title = element_text(size=27.5),
+      axis.text = element_text(size=20),
+      legend.title = element_text(size=27.5),
+      legend.text = element_text(size=20),
+      strip.text.x = element_text(size = 20),
     )
   plot_conv
 }
@@ -445,12 +463,16 @@ plot_go_exp_outcome_1 <- function(
       rev(brewer.pal(name="Reds",n=9)[3:7])
     ))) +
     theme(
-      axis.title = element_text(size=30)
-    )
+      axis.title = element_text(size=27.5),
+      axis.text = element_text(size=20),
+      legend.title = element_text(size=27.5),
+      legend.text = element_text(size=20),
+      strip.text.x = element_text(size = 20),
+    ) 
   plot_conv
 }
 
-plot_go_exp_outcome_by_tq <- function(go_model_fit, success=TRUE) {
+plot_go_exp_outcome_by_tq <- function(conv_model, success=TRUE) {
   
   plot_conv_prob_model_varyQ <- function(go_plot_o_df_p, title="") {
     go_model_o_plot_ = go_plot_o_df_p %>%
@@ -464,11 +486,13 @@ plot_go_exp_outcome_by_tq <- function(go_model_fit, success=TRUE) {
       labs(color=" quarterback\n quality", title=title) +
       # scale_y_continuous(breaks=seq(0,1,by=0.1)) +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)
@@ -486,14 +510,16 @@ plot_go_exp_outcome_by_tq <- function(go_model_fit, success=TRUE) {
       geom_line(size=1) +
       # ylab("conversion probability") + 
       xlab("yards to go") +
-      labs(color=" offensive\n quality\n of the\n rest of the\n offensive\n team", title=title) +
+      labs(color=" offensive\n quality\n of the rest\n of the\n offensive team", title=title) +
       ylab("expected yards gained") +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)
@@ -514,11 +540,13 @@ plot_go_exp_outcome_by_tq <- function(go_model_fit, success=TRUE) {
       labs(color=" defensive\n quality\n against\n the pass", title=title) +
       ylab("expected yards gained") +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)
@@ -538,11 +566,13 @@ plot_go_exp_outcome_by_tq <- function(go_model_fit, success=TRUE) {
       labs(color=" defensive\n quality\n against\n the run", title=title) +
       # scale_y_continuous(breaks=seq(0,1,by=0.1)) +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(axis.title = element_text(size=20),
-            strip.text.x = element_text(size = 20),
-            axis.text = element_text(size=20),
-            legend.text = element_text(size=20),
-            legend.title = element_text(size=20)) +
+      theme(
+        axis.title = element_text(size=27.5),
+        axis.text = element_text(size=20),
+        legend.title = element_text(size=27.5),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+      ) +
       scale_colour_manual(values = gradient1) +
       theme(
         axis.title = element_text(size=30)

@@ -78,10 +78,10 @@ for (b in 1:B) {
     ### plot functions found in `0_clean_lm.R`
     ### plot field goal success probability
     plot_fg_prob =  plot_fg_prob_by_kq(fg_model_fit)
-    ggsave(paste0("plots_models/plot_fg_prob.png"), width=8, height=5)
+    ggsave(paste0("plots_models/plot_fg_model.png"), width=8, height=5)
     ### plot punt expected outcome model
     plot_punt_exp_outcome = plot_punt_eny_by_pq(punt_model_fit)
-    ggsave(paste0("plots_models/plot_punt_exp_outcome.png"), width=8, height=5)
+    ggsave(paste0("plots_models/plot_punt_model.png"), width=8, height=5)
     ### plot conversion success probability
     plot_conv_prob = plot_conv_prob_by_tq(go_model_fit)
     ggsave(paste0("plots_models/plot_conv_prob.png"), width=30, height=5)

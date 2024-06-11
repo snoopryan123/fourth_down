@@ -220,7 +220,7 @@ for (j in 1:nrow(grid_to_plot)) {
   plot_prefix = paste0("plot_decisions_play_", i, "_wp", wp, "_og", og_method, "_se", FALSE, "_")
   heatmap_i = plot_4thDownHeatmap(ddf_i, wp=wp, og_method=og_method, SE=FALSE, ydl=play$yardline_100, ytg=play$ydstogo)
   ggsave(paste0("plots_decisions/", plot_prefix, ".png"), heatmap_i, width=9, height=7)
-  
+
   ### SE PLOTS
   ddf_ise = get_full_decision_making(play_df=play, wp=wp, og_method=og_method, SE=TRUE, coachBaseline=play$down==4)
   plot_prefix_se = paste0("plot_decisions_play_", i, "_wp", wp, "_og", og_method, "_se", TRUE, "_")
@@ -232,12 +232,4 @@ for (j in 1:nrow(grid_to_plot)) {
   gtsave(aaa,  paste0("plots_decisions/", plot_prefix_se, "summary", ".png"))
 
 }
-
-
-
-
-
-
-
-
 

@@ -35,14 +35,14 @@ generate_V_dataset <- function(kq, pq, pspread, qbqot, oqrot, dqpdt, dqrdt, qbqd
 #   season=2015, posteam="LAR", home_team="LAR", roof="dome",
 #   posteam_timeouts_remaining=3, defteam_timeouts_remaining=3,
 #   # half_seconds_remaining = 120, half_sec_rem_std = 1-(120/1800),
-#   half_seconds_remaining = 1800, half_sec_rem_std = 0,
+#   half_seconds_remaining = 1800, half_sec_rem_std = 0, game_seconds_remaining = 3600,
 #   # half_seconds_remaining = 900, half_sec_rem_std = 1/2,
+#   score_differential = 0, scoreTimeRatio = 0, total_score = 0, receive_2h_ko=1, home=1, elapsed_share=0,
 #   era_A = 3
 # )
 # ex2 = generate_V_dataset(kq=0, pq=0, pspread=0, qbqot=0, oqrot=0, dqpdt=0, dqrdt=0, qbqdt=0, oqrdt=0, dqpot=0, dqrot=0, ex2_confounders_dataset)
 # ex2
 ## View(ex2)
-
 
 ###########################
 ### First Down EP Model ###
@@ -93,9 +93,8 @@ calculate_V1 <- function(dataset, model_fit, og_method=FALSE, wp) {
 }
 
 # ### check
-# V1_model_main = fit_our_model(model_name, V1_model_type, DATASET)
-# calculate_V1(ex2, V1_model_main)
-# calculate_V1(ex2, V1_model_main, og_method = FALSE)
+# V1_model_main = V1_wp_model_obs
+# calculate_V1(ex2, V1_model_main, wp=T)
 
 ###################################
 ### Field Goal Probablity Model ###
@@ -114,6 +113,24 @@ P_FG <- function(fg_model_fit, dataset, og_method=FALSE) {
 # ### check
 # P_FG(fg_model, ex2)
 # P_FG(fg_model, ex2, og_method=TRUE)
+
+##########################################
+### Punt: Expected Next Yardline Model ###
+##########################################
+
+E_punt <- function(punt_model_fit, dataset, og_method=FALSE) {
+  ### calculate the EXPECTED NEXT YARDLINE of a PUNT at the yardlines in DATASET
+  dataset = dataset %>% select(yardline_100, pq_0_sum_std)
+  if (!og_method) {
+    predict(punt_model_fit, dataset)
+  } else { ### original decision making ignores team quality
+    predict(punt_model_og, dataset)
+  }
+}
+
+### check
+# E_punt(punt_model, ex2)
+# E_punt(punt_model, ex2, og_method=TRUE)
 
 ###################################
 ### Conversion Probablity Model ###
@@ -136,23 +153,21 @@ P_convert <- function(go_model_fit, dataset, og_method=FALSE) {
 # P_convert(go_model, ex2)
 # P_convert(go_model, ex2, og_method=TRUE)
 
-##########################################
-### Punt: Expected Next Yardline Model ###
-##########################################
-
-E_punt <- function(punt_model_fit, dataset, og_method=FALSE) {
-  ### calculate the EXPECTED NEXT YARDLINE of a PUNT at the yardlines in DATASET
-  dataset = dataset %>% select(yardline_100, pq_0_sum_std)
-  if (!og_method) {
-    predict(punt_model_fit, dataset)
-  } else { ### original decision making ignores team quality
-    predict(punt_model_og, dataset)
-  }
+E_go_outcome_given_success <- function(go_Eoutcome_success_model_fit, dataset) {
+  ### calculate the expected outcome (yards gained) given a successful conversion attempt
+  dataset = dataset %>% 
+    select(ydstogo, yardline_100, qbq_ot_0_sum, oq_rot_0_total_sum, dq_dt_0_againstPass_sum, dq_dt_0_againstRun_sum) %>%
+    mutate(down = 4) 
+  predict(go_Eoutcome_success_model_fit, dataset) ### linear regression
 }
 
-### check
-# E_punt(punt_model, ex2)
-# E_punt(punt_model, ex2, og_method=TRUE)
+E_go_outcome_given_failure <- function(go_Eoutcome_failure_model_fit, dataset) {
+  ### calculate the expected outcome (yards gained) given a failed conversion attempt
+  dataset = dataset %>% 
+    select(ydstogo, yardline_100, qbq_ot_0_sum, oq_rot_0_total_sum, dq_dt_0_againstPass_sum, dq_dt_0_againstRun_sum) %>%
+    mutate(down = 4) 
+  predict(go_Eoutcome_failure_model_fit, dataset) ### linear regression
+}
 
 ####################################
 ### Extra Point Probablity Model ###
@@ -227,28 +242,34 @@ field_position_switcherooni <- function(dataset, next_ydl_opp, next_score_diff_o
   return(dataset_1a)
 }
 
-V_go <- function(dataset, go_model_fit, model_fit, og_method = FALSE, wp, custom_conv_prob=NULL) {
+V_go <- function(dataset, go_model_fit, go_Eoutcome_success_model_fit, go_Eoutcome_failure_model_fit, 
+                 model_fit, og_method = FALSE, wp, custom_conv_prob=NULL) {
   ### calculate the value of GOING FOR IT at the (yardlines, ydstogo's) in DATASET
   
   ### probability you convert
-  pc = P_convert(go_model_fit, dataset, og_method=og_method)
-  pc = unname(pc)
-  # browser();  dataset = dataset %>% mutate(pc=pc) %>% relocate(pc, .after=ydstogo)
-  if (!is.null(custom_conv_prob)) {
-    ### use custom conversion probability
+  pc = unname(P_convert(go_model_fit, dataset, og_method=og_method))
+  if (!is.null(custom_conv_prob)) { ### use custom conversion probability
     pc = rep(custom_conv_prob, length(pc))
   } 
   
+  ### calculate the expected outcome (yards gained) given a successful conversion attempt
+  E_delta_given_success = unname(E_go_outcome_given_success(go_Eoutcome_success_model_fit, dataset))
+  E_delta_given_failure = unname(E_go_outcome_given_failure(go_Eoutcome_failure_model_fit, dataset))
+  
+  # browser()
+  
   ### value of a first down if you convert
   dataset_1a = dataset %>% mutate(
-    yardline_100 = yardline_100 - ydstogo
+    #### yardline_100 = yardline_100 - ydstogo ### assuming that a successful conversion results in gaining exactly ydstogo yards
+    yardline_100 = yardline_100 - E_delta_given_success
   )
   v_convert = calculate_V1(dataset_1a, model_fit, og_method = og_method, wp=wp)
   
   ### value of a first down for the other team if you don't convert
   dataset_1b = field_position_switcherooni(
     dataset, 
-    next_ydl_opp = 100 - dataset$yardline_100, 
+    #### next_ydl_opp = 100 - dataset$yardline_100, ### assuming that a failed conversion results in gaining exactly 0 yards
+    next_ydl_opp = 100 - (dataset$yardline_100 - E_delta_given_failure), 
     next_score_diff_opp = -dataset$score_differential
   )
   v_dont_convert = calculate_V1(dataset_1b, model_fit, og_method = og_method, wp=wp)
@@ -261,39 +282,12 @@ V_go <- function(dataset, go_model_fit, model_fit, og_method = FALSE, wp, custom
   ### Value & sd of Value, if make this decision
   value = pc*v_convert + (1-pc)*v_dont_convert
   sd_value = sqrt( pc*(1-pc)*(v_convert - v_dont_convert)^2 )
-  
-  # browser()
-  # dataset_1b$v_convert = v_convert
-  # dataset_1b$ydl_og = dataset$yardline_100
-  # dataset_1b$v_dont_convert = v_dont_convert
-  # dataset_1b$sd_og = dataset$score_differential
-  # dataset_1b$pc = pc
-  # dataset_1b %>% select(game_seconds_remaining, sd_og, ydl_og, ydstogo, pc, v_convert,
-  #                       yardline_100, game_seconds_remaining, score_differential, scoreTimeRatio, posteam_spread, v_dont_convert) %>% arrange(game_seconds_remaining)
 
-  # resulting_df = dataset %>% select(yardline_100, ydstogo) %>%
-  #   mutate(
-  #     ydl_start = yardline_100,
-  #     ydl_if_convert = yardline_100 - ydstogo,
-  #     ydl_if_dontConvert_opp = 100 - yardline_100,
-  #     prob_convert = pc,
-  #     value_convert = v1a,
-  #     ev_convert = prob_convert*value_convert,
-  #     prob_dontConvert = 1-pc,
-  #     value_dontConvert = ifelse(wp, 1-v1a, -v1a),
-  #     ev_dontConvert = prob_dontConvert*value_dontConvert,
-  #     pvmd = prob_convert*(value_convert - value_dontConvert),
-  #     v_total = ev_convert + ev_dontConvert
-  #   )
-  # View(resulting_df)
-  # browser()
   list(v_convert=v_convert, v_dont_convert=v_dont_convert, p_convert = pc, wp = value, sd_value=sd_value)
-  # return(pc*v_convert + (1-pc)*v_dont_convert)
 }
 
 # ### check
-# V_go(ex2, V1_model_main, og_method = FALSE)
-# V_go(ex2, V1_model_main, og_method = TRUE)
+# V_go(ex2, go_model_obs, go_Eoutcome_success_model_obs, go_Eoutcome_failure_model_obs, V1_wp_model_obs, wp=T)
 
 #####################
 ### Value of a FG ###
@@ -499,8 +493,9 @@ V_2PtConversion <- function(dataset, go_model_fit, model_fit, og_method = FALSE,
 ### Compute the Value of Go, FG, and PUNT ###
 #############################################
 
-calculate_Vs <- function(dataset, model_fit, fg_model_fit, punt_model_fit, go_model_fit, og_method = FALSE, wp, custom_conv_prob=NULL) {
-  Vgo_lst = V_go(dataset, go_model_fit, model_fit, og_method=og_method, wp=wp, custom_conv_prob=custom_conv_prob)
+calculate_Vs <- function(dataset, model_fit, fg_model_fit, punt_model_fit, go_model_fit, 
+                         go_Eoutcome_success_model_fit, go_Eoutcome_failure_model_fit, og_method = FALSE, wp, custom_conv_prob=NULL) {
+  Vgo_lst = V_go(dataset, go_model_fit, go_Eoutcome_success_model_fit, go_Eoutcome_failure_model_fit, model_fit, og_method=og_method, wp=wp, custom_conv_prob=custom_conv_prob)
   Vgo = Vgo_lst$wp
   Vfg_lst = V_FG(dataset, fg_model_fit, model_fit, og_method=og_method, wp=wp)
   Vfg = Vfg_lst$wp
@@ -565,8 +560,11 @@ calculate_Vs_bootstrap <- function(dataset, wp, b_max=B, custom_conv_prob=NULL, 
     fg_model_fit_b = fg_model_fitList_boot[[b]]
     punt_model_fit_b = punt_model_fitList_boot[[b]]
     go_model_fit_b = go_model_fitList_boot[[b]]
+    go_Eoutcome_success_model_fit_b = go_Eoutcome_success_model_fitList_boot[[b]]
+    go_Eoutcome_failure_model_fit_b = go_Eoutcome_failure_model_fitList_boot[[b]]
   
-    Vs_b = calculate_Vs(dataset, if (wp) V1_wp_model_fit_b else model_fit_b, fg_model_fit_b, punt_model_fit_b, go_model_fit_b, og_method=FALSE, wp=wp, custom_conv_prob=custom_conv_prob)
+    Vs_b = calculate_Vs(dataset, if (wp) V1_wp_model_fit_b else model_fit_b, fg_model_fit_b, punt_model_fit_b, go_model_fit_b, 
+                        go_Eoutcome_success_model_fit_b, go_Eoutcome_failure_model_fit_b, og_method=FALSE, wp=wp, custom_conv_prob=custom_conv_prob)
     Vs_b$b = b
     Vs_b = Vs_b %>% mutate(i = 1:n())
     Vs_all = bind_rows(Vs_all, Vs_b)
@@ -854,7 +852,8 @@ get_all_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_m
   if (SE) { ### decision making with bootstrapped standard errors
     Vs = calculate_Vs_bootstrap(plays_df, wp=wp, b_max=b_max, custom_conv_prob=custom_conv_prob)
   } else {
-    Vs = calculate_Vs(plays_df, if (wp) V1_wp_model_obs else V1_model_obs, fg_model_obs, punt_model_obs, go_model_obs, og_method=og_method, wp=wp, custom_conv_prob=custom_conv_prob)
+    Vs = calculate_Vs(plays_df, if (wp) V1_wp_model_obs else V1_model_obs, fg_model_obs, punt_model_obs, go_model_obs, 
+                      go_Eoutcome_success_model_obs, go_Eoutcome_failure_model_obs, og_method=og_method, wp=wp, custom_conv_prob=custom_conv_prob)
   }
   
   if (bind_w_plays) {
@@ -958,11 +957,12 @@ plot_4thDownHeatmap <- function(decision_df, wp, og_method=FALSE, title=TRUE, le
     if (dec_conf_str) {
       V_title = paste0("decision confidence")
     } else {
-      V_title = paste0(" proportion of bootstrapped\n", "models making that decision")
+      # V_title = paste0(" proportion of bootstrapped\n", "models making that decision")
+      V_title = paste0(" prop. bootstrapped models making that decision")
     }
   } else {
-    V_title = paste0(" ", if (wp) "win probability" else "expected points", 
-                     " added by\n making that decision")
+    # V_title = paste0(" ", if (wp) "win probability" else "expected points", " added by\n making that decision")
+    V_title = paste0(" ", if (wp) "win probability" else "expected points", " added by making that decision")
   }
   
   if (SE) {
@@ -1033,7 +1033,11 @@ plot_4thDownHeatmap <- function(decision_df, wp, og_method=FALSE, title=TRUE, le
   p = p +
     xlab("yardline") + ylab("yards to go") +
     scale_y_continuous(breaks=seq(1,10,by=1), minor_breaks = seq(1,10,by=1)) +
-    scale_x_continuous(breaks=seq(10,90,by=10)) 
+    scale_x_continuous(breaks=seq(10,90,by=10)) +
+    theme(
+      axis.title = element_text(size=30),
+      axis.text = element_text(size=25),
+    ) 
   
   if (legend_pos == "right") {
     p = p + theme(legend.direction = "vertical", legend.box = "vertical", legend.position="right") 
@@ -1254,10 +1258,6 @@ plot_4th_down_lookahead <- function(ddf, ydl, SE=FALSE, boot_plot=FALSE, wp=FALS
     ddf_lookahead = ddf_lookahead %>% mutate(V_punt_U = ifelse(yardline_100 <= 30, NA, V_punt_U))
   }
   
-  # browser()
-  
-  # scorediff = unique(ddf_lookahead$score_differential)
-  # a1 = case_when(scorediff < 0 ~ "Down", scorediff > 0 ~ "Up", TRUE ~ "Tied Up")
   plot_title = paste0("4th Down Look-Ahead\n", "1st Down at ", ydl)
   
   if (boot_plot) {
@@ -1346,7 +1346,9 @@ get_decision <- function(ydl, ytg, decision_df, include_uncertainty=FALSE) {
 plot_gt_4th_down_summary <- function(play_df, ddf, decision_df=NULL, SE=FALSE, wp=TRUE, dec_conf_str=FALSE) {
   
   a1 = paste0(
-    if (play_df$score_differential < 0) "Down " else if (play_df$score_differential > 0) "Up " else "Tied Up", if (play_df$score_differential!=0) abs(play_df$score_differential),
+    if (play_df$score_differential == 0) "Tied" else {
+      paste0(abs(play_df$score_differential), " points ", if (play_df$score_differential < 0) "down" else "up")
+    },
     ", 4th & ", play_df$ydstogo, ", ", play_df$yardline_100, " yards from opponent endzone"
   )
   a1
