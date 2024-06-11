@@ -45,7 +45,7 @@ fit_punt_eny_model_best <- function(punt_data) {
   clean_lm(fit)
 }
 
-### BEST CONVERSION LOGISTIC REGRESSION MODEL
+### BEST CONVERSION PROBABILITY LOGISTIC REGRESSION MODEL
 fit_convp_model_best <- function(go_dataset) {
   fit = glm(convert ~ 
               (down==4):bs(log(ydstogo),4,intercept = FALSE) +
@@ -53,6 +53,8 @@ fit_convp_model_best <- function(go_dataset) {
             ,data=go_dataset, family="binomial") 
   clean_lm(fit)
 }
+
+
 
 ### COACHS' BASELINE DECISION MODEL
 fit_coach_model_best <- function(fourth_down_dataset) {

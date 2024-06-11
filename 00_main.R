@@ -187,3 +187,69 @@ tail(
   )
 )
 
+
+# ### data for Adi's opportunity week class
+# data_full_WP
+# adi1 = 
+#   data_full_WP %>%
+#   filter(season %in% c(2020, 2021)) %>%
+#   select(
+#     game_id, season, game_seconds_remaining,posteam,defteam, home_team,
+#     yardline_100, ydstogo, down, score_differential, posteam_score, defteam_score,
+#     posteam_timeouts_remaining, defteam_timeouts_remaining,
+#     qbq_ot_0_sum, oq_rot_0_total_sum, dq_dt_0_againstRun_sum, dq_dt_0_againstPass_sum,
+#     qbq_dt_0_sum, oq_rdt_0_sum, dq_ot_0_againstRun_sum, dq_ot_0_againstPass_sum,
+#     label_win, 
+#   )
+# dim(adi1)
+# adi1
+# write_csv(adi1, "data_NFL_wp_demo.csv")
+
+# ### data for summer lab 2024
+# write_csv(
+#   fg_df %>% select(-c(row_idx, field_goal_attempt)) %>%
+#     filter(season >= 2010) %>%
+#     rename(ydl = yardline_100, kicker = kicker_name, kq = kq_0_sum_std)
+#   , "data_field_goals_kq.csv"
+# )
+# write_csv(
+#   fg_df %>% select(-c(row_idx, field_goal_attempt, kq_0_sum_std)) %>%
+#     filter(season >= 2010) %>%
+#     rename(ydl = yardline_100, kicker = kicker_name)
+#   , "data_field_goals.csv"
+# )
+# write_csv(
+#   punt_df %>% 
+#     select(-c(row_idx, week, posteam)) %>% 
+#     filter(season >= 2015) %>%
+#     rename(ydl = yardline_100, punter = punter_name, pq = pq_0_sum_std)
+#   , "data_punts.csv"
+# )
+# 
+# df_lab_EP = 
+#   data_full %>%
+#   select(
+#     game_id,season,play_id,pts_next_score,label,
+#     yardline_100,down,ydstogo,half,half_seconds_remaining,
+#     posteam_timeouts_remaining,defteam_timeouts_remaining,
+#     posteam_spread
+#   ) %>%
+#   filter(season %in% 2019:2024)
+# df_lab_EP
+# write_csv(df_lab_EP, "data_EP.csv")
+# df_lab_WP = 
+#   # data_full_110_WP
+#   data_full_WP %>%
+#   select(
+#     game_id, season, label_win,
+#     score_differential, game_seconds_remaining, posteam_spread,
+#     posteam_timeouts_remaining,defteam_timeouts_remaining,
+#     yardline_100,
+#     down,ydstogo,
+#   ) %>%
+#   filter(season %in% 2016:2024)
+# df_lab_WP
+# write_csv(df_lab_WP, "data_WP.csv")
+
+
+
