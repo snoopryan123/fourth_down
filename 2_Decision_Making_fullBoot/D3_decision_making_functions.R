@@ -646,7 +646,8 @@ calculate_Vs_bootstrap <- function(dataset, wp, b_max=B, custom_conv_prob=NULL, 
     relocate(V_go, .after= V_go_L) %>% relocate(V_fg, .after= V_fg_L) %>% relocate(V_punt, .after= V_punt_L) 
   Vs_all6
   
-  return(Vs_all6)
+  # return(Vs_all6)
+  list(Vs_all = Vs_all0, Vs = Vs_all6)
 }
 
 # ### check
@@ -846,11 +847,14 @@ get_coach_freqs_plot_df <- function(game_seconds_remaining, score_differential, 
 ### Full Decision Making ###
 ############################
 
-get_all_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_max=B, coachBaseline=FALSE, custom_conv_prob=NULL, bind_w_plays=TRUE) {
+get_all_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_max=B, 
+                                    coachBaseline=FALSE, custom_conv_prob=NULL, bind_w_plays=TRUE) {
   # browser()
   
   if (SE) { ### decision making with bootstrapped standard errors
-    Vs = calculate_Vs_bootstrap(plays_df, wp=wp, b_max=b_max, custom_conv_prob=custom_conv_prob)
+    Vs_lst = calculate_Vs_bootstrap(plays_df, wp=wp, b_max=b_max, custom_conv_prob=custom_conv_prob)
+    Vs = Vs_lst$Vs
+    Vs_all = Vs_lst$Vs_all
   } else {
     Vs = calculate_Vs(plays_df, if (wp) V1_wp_model_obs else V1_model_obs, fg_model_obs, punt_model_obs, go_model_obs, 
                       go_Eoutcome_success_model_obs, go_Eoutcome_failure_model_obs, og_method=og_method, wp=wp, custom_conv_prob=custom_conv_prob)
@@ -858,6 +862,12 @@ get_all_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_m
   
   if (bind_w_plays) {
     result = bind_cols(Vs, plays_df)
+    if (SE) {
+      Vs_all = bind_cols(
+        Vs_all, 
+        do.call("rbind", replicate(nrow(Vs_all)/nrow(plays_df), plays_df, simplify = FALSE))
+      )
+    }
   } else {
     result = Vs
   }
@@ -877,7 +887,13 @@ get_all_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_m
       ungroup() %>%
       mutate(V_added = V_actual - V_baseline) 
   }
-  return(result)
+  
+  # return(result)
+  if (SE) {
+    list(Vs=result, Vs_all=Vs_all)
+  } else {
+    result
+  }
 }
 
 get_POST_TD_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_max=B, 
@@ -936,7 +952,8 @@ get_full_decision_making <- function(play_df, wp, og_method=FALSE, SE=FALSE, b_m
 ### plot ###
 ############ decision_intensity_0   prop_decision_A
 
-plot_4thDownHeatmap <- function(decision_df, wp, og_method=FALSE, title=TRUE, legend_pos="right", SE=FALSE, coach=FALSE, ydl=NA, ytg=NA, dec_conf_str=FALSE) {
+plot_4thDownHeatmap <- function(decision_df, wp, og_method=FALSE, title=TRUE, legend_pos="right", 
+                                SE=FALSE, coach=FALSE, ydl=NA, ytg=NA, dec_conf_str=FALSE) {
   
   decision_df = decision_df %>% filter(ydstogo <= 10)
   
@@ -1344,7 +1361,6 @@ get_decision <- function(ydl, ytg, decision_df, include_uncertainty=FALSE) {
 }
 
 plot_gt_4th_down_summary <- function(play_df, ddf, decision_df=NULL, SE=FALSE, wp=TRUE, dec_conf_str=FALSE) {
-  
   a1 = paste0(
     if (play_df$score_differential == 0) "Tied" else {
       paste0(abs(play_df$score_differential), " points ", if (play_df$score_differential < 0) "down" else "up")
@@ -1388,9 +1404,8 @@ plot_gt_4th_down_summary <- function(play_df, ddf, decision_df=NULL, SE=FALSE, w
   a3 = a3 %>% arrange(-!!sym(wpstr))
   
   ### if WP, turn to percentages; do the colored columns LATER
-  # browser()
   percent_on = TRUE
-  percent_me = function(x) if (percent_on & wp) percent(x, accuracy=0.1) else x
+  percent_me = function(x) if (percent_on & wp) percent(x, digits=1) else x
   a3[["success prob"]] = percent_me(a3[["success prob"]])
   a3[[paste0(wpstr, " if fail")]] = percent_me(a3[[paste0(wpstr, " if fail")]])
   a3[[paste0(wpstr, " if succeed")]] = percent_me(a3[[paste0(wpstr, " if succeed")]])
@@ -1593,4 +1608,30 @@ get_post_TD_decision <- function(decision_df, include_uncertainty=FALSE) {
   }
   return(result_)
 }
+
+plot_4th_down_boot_dist <- function(play_df, ddf, wp=TRUE) {
+  ddf_i_i = ddf %>% filter(yardline_100==play_df$yardline_100 & ydstogo==play_df$ydstogo)
+  wpstr = if (wp) "WP" else "EP"
+  
+  ### bootstrapped distribution of the effect size (decision intensity)
+  # V_title = paste0(" ", if (wp) "win probability" else "expected points", " added\nby making that decision")
+  V_title = paste0("estimated ", if (wp) "win probability" else "expected points", " added ")
+  effect_size_i_i = (ddf_i_i %>% filter(b==1))$V_gain
+  # browser()
+  
+  ddf_i_i %>%
+    ggplot(aes(x=V_gain)) +
+    geom_histogram(bins=50, fill = "black") +
+    geom_vline(xintercept = 0, linetype="dashed", color="gray60", linewidth=2) +
+    geom_vline(xintercept = effect_size_i_i, linetype="solid", color="dodgerblue2", linewidth=2) +
+    xlab(V_title) +
+    theme(
+      axis.title = element_text(size=27.5),
+      axis.text = element_text(size=20),
+      legend.title = element_text(size=27.5),
+      legend.text = element_text(size=20),
+      plot.margin = unit(c(0.05, 0.25, 0.05, 0.05),"inches")
+    ) 
+}
+
 

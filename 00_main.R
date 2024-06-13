@@ -101,7 +101,13 @@ data_full_110 = data_full_110_WP
 #   data_full_110 = data_full_110_EP
 # }
 
-print(paste("there are",  length(unique(data_full$game_id)), "games in our dataset"))
+print(paste(
+  "our primary dataset of all non-tied games from", min(data_full_WP$season), "to", max(data_full_WP$season),
+  "consists of", length(unique(data_full_WP$game_id)), "games,",
+   nrow(data_full_WP), "plays, and", nrow(data_full_110_WP), "first-down plays.",
+  "There are", round(nrow(data_full_110_WP)/length(unique(data_full_WP$game_id))), 
+  "first-down plays per game on average."
+))
 
 ##########################################
 ### Get FG, PUNT, and CONVERT Datasets ###

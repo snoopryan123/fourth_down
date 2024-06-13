@@ -44,8 +44,14 @@ pq_plot = data_full_0A %>%
   arrange(-pq_mean) %>%
   filter(num_kicks >= 250) %>%
   ggplot(aes(y = fct_reorder(punter_name, pq_mean), x = pq_mean)) +
-  geom_point() +
-  xlab("career mean punter quality\n (>250 attempts, rookie season >2006)") + ylab("punter")
+  geom_vline(xintercept=0, color="gray60", linetype="dashed", linewidth=1) +
+  geom_point(size=8) +
+  xlab("career mean punter quality") + ylab("punter") +
+  theme(
+      axis.title = element_text(size=35),
+      axis.text.x = element_text(size=35),
+      axis.text.y = element_text(size=20),
+    ) 
 # pq_plot
 ggsave("data_plots/plot_pq.png", pq_plot, width=8, height=12)
 
@@ -63,8 +69,14 @@ kq_plot = data_full_0A %>%
   arrange(-kq_mean) %>%
   filter(num_kicks > 100) %>%
   ggplot(aes(y = fct_reorder(kicker_player_name, kq_mean), x = kq_mean)) +
-  geom_point() +
-  xlab("career mean kicker quality\n (>100 attempts, rookie season >2006)") + ylab("kicker")
+  geom_vline(xintercept=0, color="gray60", linetype="dashed", linewidth=1) +
+  geom_point(size=8) +
+  xlab("career mean kicker quality") + ylab("kicker") +
+  theme(
+    axis.title = element_text(size=35),
+    axis.text.x = element_text(size=35),
+    axis.text.y = element_text(size=20),
+  ) 
 # kq_plot
 ggsave("data_plots/plot_kq.png", kq_plot, width=8, height=12)
 
@@ -89,13 +101,17 @@ plot_qbq = data_full_0A %>%
   summarise(mean_qbq = mean(qbq_ot_0_sum), att = n()) %>%
   filter(att >= 1750) %>%
   ggplot() +
-  geom_point(aes(x=mean_qbq, y=fct_reorder(qb_name, mean_qbq))) +
   scale_x_continuous(breaks=seq(-10,10,by=0.50)) +
-  # xlab("career mean quarterback quality") +
-  xlab("career mean quarterback quality\n (>1750 attempts, rookie szn >2006)") +
-  ylab("quarterback")
+  geom_vline(xintercept=0, color="gray60", linetype="dashed", linewidth=1) +
+  geom_point(aes(x=mean_qbq, y=fct_reorder(qb_name, mean_qbq)), size=8) +
+  xlab("career mean QB quality") + ylab("quarterback") +
+  theme(
+    axis.title = element_text(size=35),
+    axis.text.x = element_text(size=35),
+    axis.text.y = element_text(size=20),
+  ) 
 # plot_qbq
-ggsave("data_plots/plot_TQ_qbq.png", plot_qbq, width=7, height=11)
+ggsave("data_plots/plot_TQ_qbq.png", plot_qbq, width=8, height=12)
 
 plot_oq_rot = data_full_0A %>%
   filter(season == 2021) %>%

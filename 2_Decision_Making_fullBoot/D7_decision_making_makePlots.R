@@ -12,7 +12,7 @@ options(warn=-1)
 fourth_downs_df_2022 = ALL_fourth_downs %>% filter(season %in% 2022)
 ddf_2022 = get_all_decision_making(fourth_downs_df_2022, wp=TRUE, SE=TRUE, coachBaseline=FALSE, bind_w_plays=TRUE) 
 ddf_2022_A = 
-  ddf_2022 %>% 
+  ddf_2022$Vs %>% 
   rowwise() %>%
   mutate(wp = max(v_convert, V_fg, V_punt)) %>%
   ungroup() %>%
@@ -101,7 +101,7 @@ manual_play_1 =
     kq_0_sum_std=0, pq_0_sum_std=0,
     qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_0_againstPass_sum=0, dq_dt_0_againstRun_sum=0,
     kicker_player_name="some kicker", punter_player_name=NA, ### they kicked a FG
-    #################################################################
+    ####
     half = ifelse(game_seconds_remaining <= 1800, 2, 1), 
     qtr = ifelse(game_seconds_remaining<=900,4,
                  ifelse(game_seconds_remaining<=1800,3,
@@ -122,7 +122,7 @@ manual_play_2 =
     kq_0_sum_std=0, pq_0_sum_std=0,
     qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_0_againstPass_sum=0, dq_dt_0_againstRun_sum=0,
     kicker_player_name=NA, punter_player_name=NA, ### they went for it
-    #################################################################
+    ####
     half = ifelse(game_seconds_remaining <= 1800, 2, 1), 
     qtr = ifelse(game_seconds_remaining<=900,4,
                  ifelse(game_seconds_remaining<=1800,3,
@@ -134,7 +134,7 @@ manual_play_2 =
 plays = bind_rows(plays, manual_play_1, manual_play_2)
 plays
 
-########################################################################
+####
 grid_to_plot = tibble(i = 1:nrow(plays), wp=TRUE, preset_plays=plays$preset_play)
 grid_to_plot
 
@@ -222,7 +222,8 @@ for (j in 1:nrow(grid_to_plot)) {
   ggsave(paste0("plots_decisions/", plot_prefix, ".png"), heatmap_i, width=9, height=7)
 
   ### SE PLOTS
-  ddf_ise = get_full_decision_making(play_df=play, wp=wp, og_method=og_method, SE=TRUE, coachBaseline=play$down==4)
+  ddf_ise_lst = get_full_decision_making(play_df=play, wp=wp, og_method=og_method, SE=TRUE, coachBaseline=play$down==4)
+  ddf_ise = ddf_ise_lst$Vs
   plot_prefix_se = paste0("plot_decisions_play_", i, "_wp", wp, "_og", og_method, "_se", TRUE, "_")
   heatmap_ise = plot_4thDownHeatmap(ddf_ise, wp=wp, og_method=og_method, SE=TRUE, ydl=play$yardline_100, ytg=play$ydstogo)
   ggsave(paste0("plots_decisions/", plot_prefix_se, ".png"), heatmap_ise, width=9, height=7)
@@ -230,6 +231,9 @@ for (j in 1:nrow(grid_to_plot)) {
   decision_df_i = get_decision(play$yardline_100, play$ydstogo, ddf_ise, include_uncertainty=TRUE)
   aaa = plot_gt_4th_down_summary(play, ddf_ise, decision_df=decision_df_i, SE=TRUE, wp=wp)
   gtsave(aaa,  paste0("plots_decisions/", plot_prefix_se, "summary", ".png"))
-
+  
+  ddf_ise_all = ddf_ise_lst$Vs_all
+  plot_boot_dist = plot_4th_down_boot_dist(play, ddf_ise_all, wp=wp)
+  ggsave(paste0("plots_decisions/", plot_prefix_se, "boot_dist", ".png"), plot_boot_dist, width=6, height=5)
 }
 
