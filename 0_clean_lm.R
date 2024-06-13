@@ -5,7 +5,6 @@ library(randomForest)
 library(splines)
 library(matrixcalc)
 library(lme4)
-# library(nflfastR) 
 library(nflreadr) 
 library(grid)
 library(nnet)
@@ -37,35 +36,34 @@ options(pillar.sigfig=4)
 
 ### install.packages("gt",repos = "http://cran.us.r-project.org")
 
-# ################################################################################
-# ### installing packages (on HPC3)
-# myPKGs <- c(
-#   "tidyverse",
-#   "xgboost",
-#   "randomForest",
-#   "splines",
-#   "matrixcalc",
-#   "lme4",
-###   "nflfastR",
-#   "nflreadr",
-#   "grid",
-#   "nnet",
-#   "gridExtra",
-#   "loo",
-#   "latex2exp",
-#   "RColorBrewer",
-#   "cowplot",
-#   "dials",
-#   "rlist",
-#   "gam",
-#   "ggnewscale"
-# )
-# # check to see if each package is installed, and if not add it to a list to install
-# InstalledPKGs <- names(installed.packages()[,'Package'])
-# InstallThesePKGs <- myPKGs[!myPKGs %in% InstalledPKGs]
-# # install any needed packages
-# if (length(InstallThesePKGs) > 0) install.packages(InstallThesePKGs)
-# ################################################################################
+################################################################################
+### installing packages (on HPC3)
+myPKGs <- c(
+  "tidyverse",
+  "xgboost",
+  "randomForest",
+  "splines",
+  "matrixcalc",
+  "lme4",
+  "nflreadr",
+  "grid",
+  "nnet",
+  "gridExtra",
+  "loo",
+  "latex2exp",
+  "RColorBrewer",
+  "cowplot",
+  "dials",
+  "rlist",
+  "gam",
+  "ggnewscale"
+)
+# check to see if each package is installed, and if not add it to a list to install
+InstalledPKGs <- names(installed.packages()[,'Package'])
+InstallThesePKGs <- myPKGs[!myPKGs %in% InstalledPKGs]
+# install any needed packages
+if (length(InstallThesePKGs) > 0) install.packages(InstallThesePKGs)
+################################################################################
 
 ############################################
 ### Saving LM, GLM, and MULTINOM objects ###
