@@ -12,8 +12,9 @@ OLD/*
 *.xgb
 *.rds
 
-xgb_models/*
-xgb_params/*
+1_simulation/sim_v3/job_output/*
+1_simulation/sim_v3/xgb_models/*
+1_simulation/sim_v3/xgb_params/*
 
 !ep0.rds
 !ep00.rds
