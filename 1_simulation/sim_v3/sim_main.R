@@ -369,6 +369,15 @@ fit_xgb <- function(params, train_df, val_df=NULL, nrounds=NULL) {
   return(xgb)
 }
 
+predict_xgb <- function(xgb_model, df_test) {
+  df_test_xgbDM = xgb.DMatrix(
+    model.matrix(~ . + 0, data = df_test %>% select(all_of(xgb_features))),
+    label = df_test$y
+  )
+  predict(xgb_model, df_test_xgbDM)
+}
+
+
 tune_xgboost <- function(train_df, val_df, params_filename, grid_size=40) {
   print("tuning XGBoost")
   ### Baldwin's XGBoost tuning https://www.opensourcefootball.com/posts/2021-04-13-creating-a-model-from-scratch-using-xgboost-in-r/

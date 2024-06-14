@@ -1,0 +1,12 @@
+booster: gbtree
+objective: binary:logistic
+eval_metric: logloss
+eta: 0.1683298
+gamma: 2.4385141e-08
+subsample: 0.8850577
+colsample_bytree: 0.7272727
+max_depth: 3
+min_child_weight: 4
+monotone_constraints: (0,-1,1)
+nrounds: 223.0
+

@@ -12,6 +12,9 @@ OLD/*
 *.xgb
 *.rds
 
+xgb_models/*
+xgb_params/*
+
 !ep0.rds
 !ep00.rds
 

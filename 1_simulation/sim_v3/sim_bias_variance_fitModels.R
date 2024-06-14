@@ -13,7 +13,8 @@ source("sim_main.R")
 ### fit the XGBoost model for this simulation ###
 #################################################
 
-gs_vec = 4**(4:8)
+# gs_vec = 4**(4:8)
+gs_vec = 4**seq(4,7.5,by=0.5)
 
 for (g in gs_vec) {
   for (K in c(N,1)) {
@@ -36,7 +37,7 @@ for (g in gs_vec) {
     train_df_OG = df_train
     
     ### tune XGBoost & load XGBoost tuned parameters 
-    params_filename = paste0("job_output/", "xgb_params_", sim_str, ".yaml")
+    params_filename = paste0("xgb_params/", "xgb_params_", sim_str, ".yaml")
     if (RETUNE_XGB | !file.exists(params_filename)) {
       tune_xgboost(train_df, val_df, params_filename)
     } 
@@ -46,7 +47,7 @@ for (g in gs_vec) {
     xgb_fit = fit_xgb(params, train_df_OG, nrounds=params$nrounds) 
     
     ### save the XGBoost model
-    xgb_filename = paste0("job_output/", "xgb_", sim_str, ".xgb")
+    xgb_filename = paste0("xgb_models/", "xgb_", sim_str, ".xgb")
     xgb.save(xgb_fit, xgb_filename) 
   }
 }
