@@ -2,14 +2,17 @@
 source("../../0_clean_lm.R")
 source("sim_main.R")
 
-#################################################
-###  ###
-#################################################
+##################################
+### load bias-variance results ###
+##################################
 
+set.seed(8753298)
 df_test = simulate_football_season(G=1000,N=56,K=1)
 print(df_test)
 
-gs_vec = 4**(4:8)
+# gs_vec = 4**(4:8)
+gs_vec = round(4**seq(4,7.5,by=0.5))
+gs_vec
 df_results = tibble()
 
 for (g in gs_vec) {
@@ -57,6 +60,10 @@ for (g in gs_vec) {
   }
 }
 
+#################################
+### plot bias-variance curves ###
+#################################
+
 df_results_1 = 
   df_results %>%
   pivot_longer(-c(g,G,N,K)) %>%
@@ -72,13 +79,14 @@ df_results_1 =
   )
 df_results_1
 
-### plot
+### plot bias & variance as a function of g
 label_names = as_labeller(c(
   'bias_sq'="bias^2",
   'var'="variance",
   'bv_rsum'="sqrt(bias^2 + var)"
 ), label_parsed)
-df_results_1 %>%
+plot_bias_var = 
+  df_results_1 %>%
   # filter(log(g,4)<8) %>%
   filter(log(g,4)>4) %>%
   ggplot(aes(
@@ -96,240 +104,190 @@ df_results_1 %>%
   # theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   scale_fill_manual(name="K", values=c("firebrick", "dodgerblue2")) +
   scale_color_manual(name="K", values=c("firebrick", "dodgerblue2"))
+# plot_bias_var
+ggsave("plots/plot_bias_var.png", plot_bias_var, width=13, height=4)
 
-### loss ratio
+### plot loss ratio
 df_loss_ratio = 
   df_results_1 %>%
   filter(name == "bv_rsum") %>%
-  select(g,K,value) %>%
-  pivot_wider(names_from="K", values_from=value, names_prefix="bv_rsum_K") %>%
-  mutate(r = bv_rsum_K1/bv_rsum_K56)
+  select(g,K,value,value_L,value_U) %>%
+  pivot_wider(names_from="K", values_from=c(value,value_L,value_U), names_prefix="bv_rsum_K") %>%
+  mutate(
+    r = value_bv_rsum_K1/value_bv_rsum_K56,
+    r_L = value_L_bv_rsum_K1/value_L_bv_rsum_K56,
+    r_U = value_U_bv_rsum_K1/value_U_bv_rsum_K56,
+  )
 df_loss_ratio
 
-df_loss_ratio %>%
+plot_loss_ratio = 
+  df_loss_ratio %>%
   drop_na() %>%
   ggplot(aes(x = g, y = r)) +
   # ggplot(aes(x = log(g,base=4), y = r)) +
   geom_line(linewidth=1) +
+  # geom_ribbon(aes(ymin=r_L,ymax=r_U), alpha=0.375, linetype="dashed") +
   geom_point()
+# plot_loss_ratio
+ggsave("plots/plot_loss_ratio.png", plot_loss_ratio, width=5, height=3)
 
-################################################################################
+################################
+### fit bias-variance curves ###
+################################
 
-
-
-
-
-### ESS function
-df_results_1 %>%
+### fit the loss curves 
+df_results_for_biexp_model = 
+  df_results_1 %>% 
   filter(name == "bv_rsum") %>%
-  ggplot(aes(y = value, 
-             # x=g,
-             x=log(g,base=4),
-             color=factor(K)
-  )) +
-  geom_point(size=2) +
-  geom_line(linewidth=1) +
-  scale_fill_manual(name="K", values=c("firebrick", "dodgerblue2")) +
-  scale_color_manual(name="K", values=c("firebrick", "dodgerblue2"))
-  
-df_results_1
-
-model_power_law = lm(
-  # log(value) ~ factor(K):I(-log(g) )
-  log(value) ~ factor(K):(g + log(g))
-  ,data = df_results_1 %>% filter(name == "bv_rsum")
-)
-model_power_law
-### plot
-df_results_2 =
-  df_results_1 %>%
-  mutate(
-    linepred = predict(model_power_law, .),
-    # pred = exp(linepred),
-    pred = exp(linepred),
-    pred = ifelse(name!="bv_rsum", NA, pred),
+  select(g,K,value) %>%
+  bind_rows(
+    # tibble(g = 1e5, value=1e-5, K = c(1,56))
   )
-df_results_2
-label_names = as_labeller(c(
-  'bias_sq'="bias^2",
-  'var'="variance",
-  'bv_rsum'="sqrt(bias^2 + var)"
-), label_parsed)
-df_results_2 %>%
-  ggplot(aes(y = value, x=log(g,base=4),
-             color=factor(K), fill = factor(K)
+df_results_for_biexp_model
+
+model_loss_K1 = nls(
+  value ~ a + b*exp(-c*g) + d*exp(-f*g),
+  # value ~ a + b*exp(-c*g),
+  data = df_results_for_biexp_model%>% filter(K==1),
+  start = list(a=0.02,b=0.06,c=0.001,d=0.01,f=0.0001)
+  # start = list(a=0,b=0.1,c=0,d=0.05,f=0.1)
+  # start = list(a=0.02,b=0.06,c=0.001)
+)
+model_loss_K1
+model_loss_K56 = nls(
+  value ~ a + b*exp(-c*g) + d*exp(-f*g),
+  data = df_results_for_biexp_model%>% filter(K==56), #%>% filter(g < 4**(7.5)),
+  start = list(a=0.02,b=0.06,c=0.001,d=0.01,f=0.0001)
+)
+model_loss_K56
+
+pred_model_loss_K1 = function(g) {
+  predict(model_loss_K1, tibble(g))
+}
+
+pred_model_loss_K56 = function(g) {
+  predict(model_loss_K56, tibble(g))
+}
+
+# ggplot() +
+#   xlim(c(0, 4e4)) + ylim(c(0,0.2)) +
+#   geom_function(fun = pred_model_loss_K56)
+
+### plot fitted loss curves on top of empirical loss curves
+plot_ass = 
+  df_results_1 %>%
+  filter(name == "bv_rsum") %>%
+  filter(log(g,4)>4) %>%
+  ggplot(aes(
+    y = value, 
+    x=log(g,base=4),
+    color=factor(K), fill = factor(K)
   )) +
-  facet_wrap(~factor(name, levels=c("bias_sq", "var", "bv_rsum")),
-             scales = "free_y",
-             labeller = label_names) +
   geom_point(size=2) +
   geom_line(linewidth=1) +
-  geom_line(aes(y = pred)) +
-  # geom_function(
-  #   fun = function(x) exp(predict(model_power_law,tibble(x))),
-  #   # fun = function(x) exp(predict(model_power_law,tibble(4**x))),
-  #   linewidth=1,
-  #   colour = "cyan"
-  # ) +
-  # stat_function(fun = function(g) predict(model_power_law,g)) +
   geom_ribbon(aes(ymin = value_L, ymax = value_U), alpha=0.375, linetype="dashed") +
+  geom_function(
+    fun = function(x) { pred_model_loss_K1(4**x) },
+    linewidth=1,
+    colour = "magenta"
+  ) +
+  geom_function(
+    fun = function(x) { pred_model_loss_K56(4**x) },
+    linewidth=1,
+    colour = "cyan"
+  ) +
   xlab(TeX("$\\log_4(g)$")) +
-  # theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  ylab(expression(sqrt(bias^2 + var))) +
+  scale_x_continuous(breaks = log(gs_vec,4)) +
   scale_fill_manual(name="K", values=c("firebrick", "dodgerblue2")) +
   scale_color_manual(name="K", values=c("firebrick", "dodgerblue2"))
+# plot_ass
 
+### plot fitted loss curves
+plot_ass_1 = 
+  df_results_1 %>%
+  filter(name == "bv_rsum") %>%
+  filter(log(g,4)>4) %>%
+  ggplot(aes(
+    y = value, 
+    x=log(g,base=4),
+  )) +
+  geom_function(
+    aes(color = "1"),
+    fun = function(x) { pred_model_loss_K1(4**x) },
+    linewidth=1,
+  ) +
+  geom_function(
+    aes(color = "56"),
+    fun = function(x) { pred_model_loss_K56(4**x) },
+    linewidth=1,
+  ) +
+  xlab(TeX("$\\log_4(g)$")) +
+  ylab(expression(sqrt(bias^2 + var))) +
+  scale_x_continuous(breaks = log(gs_vec,4)) +
+  scale_color_manual(name="K", values=c("firebrick", "dodgerblue2"))
+# plot_ass_1
+ggsave("plots/plot_loss_fitted_curves.png", plot_ass_1, width=6, height=4)
 
-
-
-
-
-### coefficients
-beta0_K1 = model_power_law$coefficients[1]
-beta0_K56 = model_power_law$coefficients[2]
-beta1_K1 = model_power_law$coefficients[3]
-beta1_K56 = model_power_law$coefficients[4]
-###
-g_K56 <- function(g_K1) {
-  (exp(beta0_K56 - beta0_K1) * g_K1^beta1_K1)^(1/beta1_K56)
+### solve for ESS
+root_func = function(g) {
+  function(g1) {
+    pred_model_loss_K1(g1) - pred_model_loss_K56(g)
+  }
 }
-### ESS for N=56, K=56, G=4101
-4101*56
-g_K56(229656)
-g_K56(229656) / 229656 * 100
-### plot g_K56 / g_K1 as a function of g_K1
-tibble(g_K1 = c(1e4, 5e4, 1e5, 2e5)) %>%
-  mutate(ratio = g_K56(g_K1)/g_K1) %>%
-  ggplot(aes(x = g_K1, y = ratio)) +
-  geom_point() +
-  geom_line()
+# root_func(g=4101)
 
+find_root <- function(g) {
+  uniroot(root_func(g), interval=c(0,1e8))$root
+  
+}
+sapply(4^seq(4.5,6.5,by=0.5), find_root)
 
+### examples
+print(find_root(g=4101))
+print(find_root(g=4101)/4101)
+print(find_root(g=8202))
+print(find_root(g=8202)/8202)
+print(find_root(g=2050))
+print(find_root(g=2050)/2050)
 
+### plot effective sample size
+df_plot_ESS = 
+  tibble(
+    # g = 4^seq(4.5,6.5,by=0.5),
+    g = seq(1000,10000,by=100),
+  ) %>%
+    rowwise() %>%
+    mutate(
+      g1 = find_root(g),
+      ratio = g1/g,
+    ) %>%
+    ungroup() 
+df_plot_ESS
 
+xL = round(min(df_plot_ESS$g1)-50,-2)
+xU = max(df_plot_ESS$g)
+plot_ESS = 
+  df_plot_ESS %>%
+  ggplot(aes(
+    y = g1,
+    # y=ratio,
+    x=g,
+    # x=log(g,base=4),
+  )) +
+  # xlab(TeX("$\\log_4(g)$")) +
+  # ylab("ESS") +
+  # ylab(expression('ESS '*g*"'")) +
+  ylab(expression('effective sample size '*g*"'")) +
+  xlim(c(xL,xU)) + ylim(c(xL,xU)) +
+  geom_line(linewidth=2) +
+  theme(
+    plot.margin = unit(c(0.2,1,0.2,0.2), "cm")
+  ) +
+  geom_point(data=tibble(g=4101,g1=find_root(g=4101)), color="firebrick", size=5, shape=16) 
+plot_ESS
+ggsave("plots/plot_ESS_curve.png", plot_ESS, width=6, height=4)
 
-
-# # ### power law regression WITH INTERCEPT
-# # model_power_law = lm(
-# #   log(value) ~ factor(K) + factor(K):I(-log(g)) + 0
-# #   ,data = df_results_1 %>% filter(name == "bv_rsum")
-# # )
-# # model_power_law
-# # ### coefficients
-# # beta0_K1 = model_power_law$coefficients[1]
-# # beta0_K56 = model_power_law$coefficients[2]
-# # beta1_K1 = model_power_law$coefficients[3]
-# # beta1_K56 = model_power_law$coefficients[4]
-# # ###
-# # g_K56 <- function(g_K1) {
-# #   (exp(beta0_K56 - beta0_K1) * g_K1^beta1_K1)^(1/beta1_K56)
-# # }
-# # ### ESS for N=56, K=56, G=4101
-# # 4101*56
-# # g_K56(229656)
-# # g_K56(229656) / 229656 * 100
-# # ### plot g_K56 / g_K1 as a function of g_K1
-# # tibble(g_K1 = c(1e4, 5e4, 1e5, 2e5)) %>%
-# #   mutate(ratio = g_K56(g_K1)/g_K1) %>%
-# #   ggplot(aes(x = g_K1, y = ratio)) +
-# #   geom_point() +
-# #   geom_line()
-# 
-# ### power law regression WITHOUT INTERCEPT
-# model_power_law = lm(
-#   # log(value) ~ factor(K):I(-log(g)) + 0
-#   # log(value) ~ factor(K):I(-log(g))
-#   log(value) ~ factor(K):I(-log(g))
-#   ,data = df_results_1 %>% filter(name == "bv_rsum")
-# )
-# model_power_law
-# # ### coefficients
-# # # beta1_K1 = model_power_law$coefficients[1]
-# # # beta1_K56 = model_power_law$coefficients[2]
-# # beta1_K1 = model_power_law$coefficients[2]
-# # beta1_K56 = model_power_law$coefficients[3]
-# # beta1_K1/beta1_K56
-# 
-# ### plot
-# df_results_2 = 
-#   df_results_1 %>%
-#   mutate(pred = ifelse(name=="bv_rsum", exp(predict(model_power_law, .)), NA))
-# df_results_2
-# label_names = as_labeller(c(
-#   'bias_sq'="bias^2",
-#   'var'="variance",
-#   'bv_rsum'="sqrt(bias^2 + var)"
-# ), label_parsed)
-# df_results_2 %>%
-#   ggplot(aes(y = value, x=log(g,base=4), 
-#              color=factor(K), fill = factor(K)
-#   )) +
-#   facet_wrap(~factor(name, levels=c("bias_sq", "var", "bv_rsum")), 
-#              scales = "free_y",
-#              labeller = label_names) +
-#   geom_point(size=2) +
-#   geom_line(linewidth=1) +
-#   geom_line(aes(y = pred)) +
-#   # stat_function(fun = function(g) predict(model_power_law,g)) +
-#   geom_ribbon(aes(ymin = value_L, ymax = value_U), alpha=0.375, linetype="dashed") +
-#   xlab(TeX("$\\log_4(g)$")) +
-#   # theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-#   scale_fill_manual(name="K", values=c("firebrick", "dodgerblue2")) +
-#   scale_color_manual(name="K", values=c("firebrick", "dodgerblue2")) 
-# 
-# ###
-# g_K56 <- function(g_K1) {
-#   g_K1^(beta1_K1/beta1_K56)
-# }
-# ### ESS for N=56, K=56, G=4101
-# 4101*56
-# g_K56(229656)
-# 229656 / g_K56(229656)
-# ### plot g_K56 / g_K1 as a function of g_K1
-# tibble(g_K1 = c(4000, 5000, 6000)) %>%
-#   mutate(ratio = g_K1/g_K56(g_K1)) %>%
-#   ggplot(aes(x = g_K1, y = ratio)) +
-#   geom_point() +
-#   geom_line()
-
-
-
-
-
-# ### accuracy ratio
-# df_accuracy_ratio = 
-#   df_results_1 %>%
-#   filter(name == "bv_rsum") %>%
-#   select(g,K,value) %>%
-#   pivot_wider(names_from="K", values_from=value, names_prefix="bv_rsum_K") %>%
-#   mutate(r = bv_rsum_K1/bv_rsum_K56)
-# # mutate(r = bv_rsum_K56/bv_rsum_K1) 
-# df_accuracy_ratio
-# 
-# # model_accuracy_ratio = lm(r ~ poly(g,3), data=df_accuracy_ratio)
-# # model_accuracy_ratio = lm(
-# #   log(1/(1-r)) ~ log(g),
-# #   # log(1/(1-r)) ~ log(g) + I(log(g)^2) + I(log(g)^3) , 
-# #   # r ~ g + I(g^2),
-# #   data=df_accuracy_ratio 
-# # )
-# # model_accuracy_ratio
-# 
-# df_accuracy_ratio %>%
-#   drop_na() %>%
-#   # mutate(pred = predict(model_accuracy_ratio,.)) %>%
-#   # mutate(pred = 1-1/exp(predict(model_accuracy_ratio,.)) ) %>%
-#   ggplot(aes(x = g, y = r)) +
-#   geom_line(linewidth=1) +
-#   # geom_line(aes(y=pred), linetype="dashed", color="cyan", linewidth=1) +
-#   # geom_function(
-#   #   fun = function(g) 1 - 75 / g^(.8),
-#   #   # fun = function(g) 1-1/exp(predict(model_accuracy_ratio,tibble(g))),
-#   #   # fun = function(g) predict(model_accuracy_ratio,tibble(g)), 
-#   #   linewidth=1,
-#   #   colour = "cyan"
-#   # ) +
-#   # ylab("accuracy ratio") +
-#   geom_point()
 
 
 
