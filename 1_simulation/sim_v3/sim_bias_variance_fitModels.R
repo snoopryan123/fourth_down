@@ -14,7 +14,8 @@ source("sim_main.R")
 #################################################
 
 # gs_vec = 4**(4:8)
-gs_vec = 4**seq(4,7.5,by=0.5)
+gs_vec = round(4**seq(4,7.5,by=0.5))
+gs_vec
 
 for (g in gs_vec) {
   for (K in c(N,1)) {

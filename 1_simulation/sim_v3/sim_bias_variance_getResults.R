@@ -80,9 +80,12 @@ label_names = as_labeller(c(
 ), label_parsed)
 df_results_1 %>%
   # filter(log(g,4)<8) %>%
-  ggplot(aes(y = value, x=log(g,base=4),
-             color=factor(K), fill = factor(K)
-             )) +
+  filter(log(g,4)>4) %>%
+  ggplot(aes(
+    y = value, 
+    x=log(g,base=4),
+    color=factor(K), fill = factor(K)
+  )) +
   facet_wrap(~factor(name, levels=c("bias_sq", "var", "bv_rsum")),
              scales = "free_y",
              labeller = label_names) +
@@ -132,7 +135,8 @@ df_results_1 %>%
 df_results_1
 
 model_power_law = lm(
-  log(value) ~ factor(K):I(-log(g) )
+  # log(value) ~ factor(K):I(-log(g) )
+  log(value) ~ factor(K):(g + log(g))
   ,data = df_results_1 %>% filter(name == "bv_rsum")
 )
 model_power_law
@@ -141,9 +145,9 @@ df_results_2 =
   df_results_1 %>%
   mutate(
     linepred = predict(model_power_law, .),
+    # pred = exp(linepred),
     pred = exp(linepred),
     pred = ifelse(name!="bv_rsum", NA, pred),
-    # pred = ifelse(name=="bv_rsum", exp(predict(model_power_law, .)), NA)
   )
 df_results_2
 label_names = as_labeller(c(
@@ -161,6 +165,12 @@ df_results_2 %>%
   geom_point(size=2) +
   geom_line(linewidth=1) +
   geom_line(aes(y = pred)) +
+  # geom_function(
+  #   fun = function(x) exp(predict(model_power_law,tibble(x))),
+  #   # fun = function(x) exp(predict(model_power_law,tibble(4**x))),
+  #   linewidth=1,
+  #   colour = "cyan"
+  # ) +
   # stat_function(fun = function(g) predict(model_power_law,g)) +
   geom_ribbon(aes(ymin = value_L, ymax = value_U), alpha=0.375, linetype="dashed") +
   xlab(TeX("$\\log_4(g)$")) +
