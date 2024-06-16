@@ -32,9 +32,10 @@ for (g in gs_vec) {
     all_game_idxs = 1:G
     set.seed(9375689 + m*2947)
     val_game_idxs = sort(sample(all_game_idxs, size=round(G*0.5), replace=FALSE))
-    train_game_idxs_OG = setdiff(all_game_idxs, val_game_idxs)
+    train_game_idxs = setdiff(all_game_idxs, val_game_idxs)
+    train_game_idxs_OG = all_game_idxs
     val_df = df_train %>% filter(g %in% val_game_idxs)
-    train_df = df_train %>% filter(g %in% train_game_idxs_OG)
+    train_df = df_train %>% filter(g %in% train_game_idxs)
     train_df_OG = df_train
     
     ### tune XGBoost & load XGBoost tuned parameters 

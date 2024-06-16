@@ -6,6 +6,7 @@ source("sim_main.R")
 ### load bias-variance results ###
 ##################################
 
+### generate testing dataset 
 set.seed(8753298)
 df_test = simulate_football_season(G=1000,N=56,K=1)
 print(df_test)

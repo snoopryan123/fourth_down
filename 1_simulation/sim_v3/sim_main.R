@@ -7,7 +7,7 @@
 SI = 1 # scoring increment (touchdown)
 L = 4 # (EVEN NUMBER) number of yardline bins {0=oTD, 1,2,...,L-1, L=TD}, set so that the mean # epochs per game == actual mean # epochs per game (11.6)
 MIDFIELD = L/2 # midfield field position x = L/2;  L needs to be an even number
-B = 100 # num bootstrap samples
+B = 101 # num bootstrap samples
 xgb_features = c("n","x","s") # XGBoost features
 M = 100 ### number of simulations
 N = 56 ### number of plays per game
@@ -95,14 +95,7 @@ get_WP_true_mat <- function(N) {
   return(WP_true)
 }
 
-visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_mat=NULL, boot_method="rcb", brp_=1, option=1, demo=FALSE) {
-  my_palette <- c(
-    brewer.pal(name="Blues",n=9)[4:9],
-    rev(brewer.pal(name="Purples",n=9)[6:8]),
-    "magenta", "black",
-    rev(brewer.pal(name="Greens",n=9)[2:9])
-  )
-  
+get_df_visualize_wp <- function(N) {
   ### WP vs. time for various score differential values, from midfield
   df_visualize_wp = tibble()
   for (x in c(1, MIDFIELD, L-1)) {
@@ -123,7 +116,20 @@ visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_ma
       s_ = paste0("score diff = ", s)
     ) %>%
     ungroup()
+  df_visualize_wp
+}
+
+visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_mat=NULL, boot_method="rcb", brp_=1, option=1, demo=FALSE) {
+  my_palette <- c(
+    brewer.pal(name="Blues",n=9)[4:9],
+    rev(brewer.pal(name="Purples",n=9)[6:8]),
+    "magenta", "black",
+    rev(brewer.pal(name="Greens",n=9)[2:9])
+  )
   
+  ### WP vs. time for various score differential values, from midfield
+  df_visualize_wp = get_df_visualize_wp(N)
+
   if (demo) {
     valid_xs = c(3)
     # valid_ss = c(0,1,2,3)
@@ -159,8 +165,8 @@ visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_ma
       df_visualize_wp1 %>% 
       mutate(
         wp = predict(wp_xgb_model, xgb.DMatrix(model.matrix(~ . + 0, data = df_visualize_wp1 %>% select(all_of(xgb_features))) )),
-        wp_type = "ML"
-        # wp_type = "XGBoost"
+        # wp_type = "ML"
+        wp_type = "XGBoost"
       )
   }
   if (!is.null(wp_boot_mat)) {
@@ -371,12 +377,10 @@ fit_xgb <- function(params, train_df, val_df=NULL, nrounds=NULL) {
 
 predict_xgb <- function(xgb_model, df_test) {
   df_test_xgbDM = xgb.DMatrix(
-    model.matrix(~ . + 0, data = df_test %>% select(all_of(xgb_features))),
-    label = df_test$y
+    model.matrix(~ . + 0, data = df_test %>% select(all_of(xgb_features)))
   )
   predict(xgb_model, df_test_xgbDM)
 }
-
 
 tune_xgboost <- function(train_df, val_df, params_filename, grid_size=40) {
   print("tuning XGBoost")
