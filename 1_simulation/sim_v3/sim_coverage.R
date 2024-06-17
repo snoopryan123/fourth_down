@@ -123,7 +123,7 @@ write_csv(loss_results_df_binned, paste0("xgb_covg/", sim_str, "_loss_df_binned.
 ### XGBoost bootstrapped predictions ###
 ########################################
 
-phi_vec = c(1, 0.75, 0.5)
+phi_vec = c(1, 0.75, 0.5, 0.25)
 df_boot_method = tibble(
   boot_method = c("SB", "CB", rep("RCB", length(phi_vec))),
   phi = c(1, 1, phi_vec)
@@ -228,7 +228,7 @@ get_covg_df <- function(B, alpha = 0.05) {
     ### widen CI for WP near 0 and 1
     boot_results_df_j = boot_results_df_j %>% mutate(
       wp_pred_2_L = ifelse(wp_pred_M <= 0.02, 0, wp_pred_L),
-      wp_pred_2_U = ifelse(wp_pred_M >= 0.98, 0, wp_pred_U),
+      wp_pred_2_U = ifelse(wp_pred_M >= 0.98, 1, wp_pred_U),
     )
     boot_results_df = bind_rows(boot_results_df, boot_results_df_j)
   }

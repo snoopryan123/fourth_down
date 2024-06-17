@@ -119,7 +119,7 @@ get_df_visualize_wp <- function(N) {
   df_visualize_wp
 }
 
-visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_mat=NULL, boot_method="rcb", brp_=1, option=1, demo=FALSE) {
+visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_mat=NULL, boot_method_="RCB", phi_=1, option=1, demo=FALSE) {
   my_palette <- c(
     brewer.pal(name="Blues",n=9)[4:9],
     rev(brewer.pal(name="Purples",n=9)[6:8]),
@@ -170,14 +170,17 @@ visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_ma
       )
   }
   if (!is.null(wp_boot_mat)) {
-    wp_boot_mat_L = wp_boot_mat %>%
-      filter(brp == brp_) %>%
-      rename(wp = all_of(paste0("wp_pred_", boot_method, "_L"))) %>%
+    # browser()
+    wp_boot_mat_L = 
+      wp_boot_mat %>%
+      filter(boot_method == boot_method_, phi == phi_) %>%
+      rename(wp = wp_pred_L) %>%
       mutate(wp_type = "lower boot.") %>%
       select(wp, wp_type)
-    wp_boot_mat_U = wp_boot_mat %>%
-      filter(brp == brp_) %>%
-      rename(wp = all_of(paste0("wp_pred_", boot_method, "_U"))) %>%
+    wp_boot_mat_U = 
+      wp_boot_mat %>%
+      filter(boot_method == boot_method_, phi == phi_) %>%
+      rename(wp = wp_pred_U) %>%
       mutate(wp_type = "upper boot.") %>%
       select(wp, wp_type)
     plot_df3 = df_visualize_wp %>% bind_cols(wp_boot_mat_L)
@@ -495,6 +498,10 @@ tune_xgboost <- function(train_df, val_df, params_filename, grid_size=40) {
 
 get_param_combo_str <- function(g,G,N,K,m) {
   paste0("sim", "_g", g, "_G", G, "_N", N, "_K", K, "_m", m)
+}
+
+get_param_combo_str_0 <- function(g,G,N,K) {
+  paste0("sim", "_g", g, "_G", G, "_N", N, "_K", K)
 }
 
 ### find reasonable values for (G,N)
