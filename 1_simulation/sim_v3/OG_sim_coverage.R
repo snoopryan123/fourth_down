@@ -187,7 +187,108 @@ for (j in 1:nrow(df_boot_method)) {
   }
 }
 
-### save the bootstrapped predictions
-saveRDS(wp_preds, paste0("xgb_covg/", sim_str, "_", "wp_preds", ".rds"))
-saveRDS(wp_preds_viz, paste0("xgb_covg/", sim_str, "_", "wp_preds_viz", ".rds"))
+# ### save the bootstrapped predictions
+# saveRDS(wp_preds, paste0("xgb_covg/", sim_str, "_", "wp_preds", ".rds"))
+# saveRDS(wp_preds_viz, paste0("xgb_covg/", sim_str, "_", "wp_preds_viz", ".rds"))
+
+#################################
+### Visualize Bootstrap Dists ###
+#################################
+
+alpha = 0.05 ### use nominal 90% CI because for B=101 we can use the 6^th and 96^th models.
+viz_df_boot = tibble()
+for (j in 1:nrow(df_boot_method)) {
+  viz_df_boot_j = tibble(
+    wp_pred_L = apply(wp_preds_viz[,1:B,j], 1, function(x) quantile(x, alpha) ),
+    wp_pred_U = apply(wp_preds_viz[,1:B,j], 1, function(x) quantile(x, 1-alpha) ),
+    boot_method = df_boot_method$boot_method[j],
+    phi = df_boot_method$phi[j],
+  )
+  viz_df_boot = bind_rows(viz_df_boot, viz_df_boot_j)
+}
+### write viz_df_boot
+saveRDS(viz_df_boot, paste0("xgb_covg/", sim_str, "_viz_df_boot.rds"))
+
+#########################################
+### Bootstrapped Confidence Intervals ###
+#########################################
+
+### coverages 
+get_covg_df <- function(B, alpha = 0.05) {
+  boot_results_df = tibble()
+  for (j in 1:nrow(df_boot_method)) {
+    boot_results_df_j = tibble(
+      wp_actual = df_test$wp_actual,
+      wp_pred_L = apply(wp_preds[,1:B,j], 1, function(x) quantile(x, alpha) ),
+      wp_pred_M = apply(wp_preds[,1:B,j], 1, function(x) quantile(x, 0.5) ),
+      wp_pred_U = apply(wp_preds[,1:B,j], 1, function(x) quantile(x, 1-alpha) ),
+      boot_method = df_boot_method$boot_method[j],
+      phi = df_boot_method$phi[j],
+    )
+    ### widen CI for WP near 0 and 1
+    boot_results_df_j = boot_results_df_j %>% mutate(
+      wp_pred_2_L = ifelse(wp_pred_M <= 0.02, 0, wp_pred_L),
+      wp_pred_2_U = ifelse(wp_pred_M >= 0.98, 1, wp_pred_U),
+    )
+    boot_results_df = bind_rows(boot_results_df, boot_results_df_j)
+  }
+
+  covg_results_df = 
+    boot_results_df %>%
+    group_by(boot_method,phi) %>%
+    mutate(
+      covered = as.numeric(wp_pred_L <= wp_actual & wp_actual <= wp_pred_U),
+      covered_2 = as.numeric(wp_pred_2_L <= wp_actual & wp_actual <= wp_pred_2_U),
+      width = wp_pred_U - wp_pred_L,
+      width_2 = wp_pred_2_U - wp_pred_2_L,
+    )
+  return(covg_results_df)
+}
+# get_covg_df(B=2)
+
+# B_list = c(10,25,50,100,150,200,250,500,1000)
+# B_list = c(25)
+B_list = c(B)
+COVG_DF = tibble()
+COVG_DF_BINNED = tibble()
+for (BB in B_list) {
+  if (BB <= B) {
+    covg_results_df_BB = get_covg_df(B=BB)
+    
+    covg_df_BB = 
+      covg_results_df_BB %>%
+      group_by(boot_method,phi) %>%
+      summarise(
+        m = m,
+        B = B,
+        covered = mean(covered),
+        covered_2 = mean(covered_2),
+        width = mean(width),
+        width_2 = mean(width_2),
+        .groups = "drop"
+      )
+    
+    covg_df_BB_binned = 
+      covg_results_df_BB %>%
+      mutate(wp_actual_bin = cut(wp_actual, NUM_WP_ACTUAL_BINS)) %>%
+      group_by(boot_method,phi,wp_actual_bin) %>%
+      summarise(
+        m = m,
+        B = B,
+        covered = mean(covered),
+        covered_2 = mean(covered_2),
+        width = mean(width),
+        width_2 = mean(width_2),
+        .groups = "drop"
+      )
+    
+    COVG_DF = bind_rows(COVG_DF, covg_df_BB)
+    COVG_DF_BINNED = bind_rows(COVG_DF_BINNED, covg_df_BB_binned)
+  }
+}
+print(data.frame(COVG_DF))
+write_csv(COVG_DF, paste0("xgb_covg/", sim_str, "_covg_df.csv"))
+
+print(data.frame(COVG_DF_BINNED))
+write_csv(COVG_DF_BINNED, paste0("xgb_covg/", sim_str, "_covg_df_binned.csv"))
 
