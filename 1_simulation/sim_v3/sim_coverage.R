@@ -123,7 +123,7 @@ write_csv(loss_results_df_binned, paste0("xgb_covg/", sim_str, "_loss_df_binned.
 ### XGBoost bootstrapped predictions ###
 ########################################
 
-phi_vec = c(1, 0.75, 0.5, 0.25)
+phi_vec = c(1, 3/4, 1/2, 3/8, 1/4)
 df_boot_method = tibble(
   boot_method = c("SB", "CB", rep("RCB", length(phi_vec))),
   phi = c(1, 1, phi_vec)
