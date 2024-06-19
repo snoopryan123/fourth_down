@@ -13,6 +13,7 @@ G = 4096
 g = G*(K/N)
 sim_str_0 = get_param_combo_str_0(g,G,N,K)
 print(sim_str_0)
+phi_vec = c(1, 0.75, 0.5, 0.4, 0.3)
 
 ########################################################################
 ### Load the loss, CI coverage, and CI length data from all the sims ###
@@ -128,31 +129,6 @@ write_csv(covg_df_B, paste0("plots/", sim_str_0, "_results2_covg_len.csv"))
 # # plot_combined_1
 # save_kable(plot_combined_1, file = paste0("results/", sim_str_0, "_plot_LossCovgLen_1.png"))
 
-########################
-### Visualize XGB WP ###
-########################
-
-# ms = 5
-ms = c(20,30)
-phis = c(1,0.75,0.5,0.25)
-for (m in ms) {
-  WP_true = get_WP_true_mat(N)
-  sim_str = get_param_combo_str(g,G,N,K,m)
-  xgb_pp = xgb.load(paste0("xgb_models/xgb_", sim_str, ".xgb"))
-  viz_df_boot = readRDS(paste0("xgb_covg/", sim_str, "_viz_df_boot.rds"))
-  
-  ### visualize the XGBoost WP model
-  WP_true = get_WP_true_mat(N)
-  plot_wp_both_vs_time_d = visualize_wp(WP_true, N=N, wp_true=TRUE, wp_xgb_model=xgb_pp, demo=TRUE, option=1)
-  ggsave(paste0("plots/", sim_str, "_plot_wp_true_vs_time_d_both.png"), plot_wp_both_vs_time_d, width=8, height=6)
-  
-  ### visualize the WP CIs
-  for (phi in phis) {
-    plot_wp_both_boot_rcb_vs_time_d = visualize_wp(WP_true, N=N, wp_true=TRUE, wp_xgb_model=xgb_pp, wp_boot_mat=viz_df_boot, boot_method_="RCB", phi_=phi, demo=TRUE, option=1)
-    ggsave(paste0("plots/", sim_str, "_plot_wp_both_boot_","RCB","_phi",phi,"_vs_time_d.png"), plot_wp_both_boot_rcb_vs_time_d, width=8, height=6)
-  }
-}
-
 ###########################################################################
 ### PLOT loss, coverage, and CI length across different bins of WP_true ###
 ###########################################################################
@@ -178,7 +154,9 @@ plot_loss_df_binned =
 # plot_loss_df_binned
 ggsave(paste0("plots/", sim_str_0, "_plot_loss_df_binned.png"), plot_loss_df_binned, width=15, height=5)
 
-for (phi_ in c(1, 0.5, 0.25)) {
+for (phi_ in phi_vec) {
+  print(paste0("phi=",phi_))
+  
   ## PLOT CI covg as a function of actual WP
   plot_covg_df_binned = 
     covg_df_binned %>%
@@ -233,10 +211,36 @@ for (phi_ in c(1, 0.5, 0.25)) {
     xlab("true win probability") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13))
   # plot_ci_len_df_binned
-  ggsave(paste0("plots/", sim_str_0,"_plot_ci_width_df_binned","_phi",phi,".png"), plot_ci_len_df_binned, width=15, height=5)
+  ggsave(paste0("plots/", sim_str_0,"_plot_ci_width_df_binned","_phi",phi_,".png"), plot_ci_len_df_binned, width=15, height=5)
   
   ### combined plot
   plot_combined = cowplot::plot_grid(plot_loss_df_binned, plot_covg_df_binned, plot_ci_len_df_binned, ncol=1)
   # plot_combined
   save_plot(paste0("plots/", sim_str_0,"_plot_wp_binned","_phi",phi_,".png"), plot_combined, base_width=18, base_height=21)
+}
+
+########################
+### Visualize XGB WP ###
+########################
+
+# ms = 5
+ms = c(20,30)
+# phis = c(1,0.75,0.5,0.25)
+phis = phi_vec
+for (m in ms) {
+  WP_true = get_WP_true_mat(N)
+  sim_str = get_param_combo_str(g,G,N,K,m)
+  xgb_pp = xgb.load(paste0("xgb_models/xgb_", sim_str, ".xgb"))
+  viz_df_boot = readRDS(paste0("xgb_covg/", sim_str, "_viz_df_boot.rds"))
+  
+  ### visualize the XGBoost WP model
+  WP_true = get_WP_true_mat(N)
+  plot_wp_both_vs_time_d = visualize_wp(WP_true, N=N, wp_true=TRUE, wp_xgb_model=xgb_pp, demo=TRUE, option=1)
+  ggsave(paste0("plots/", sim_str, "_plot_wp_true_vs_time_d_both.png"), plot_wp_both_vs_time_d, width=8, height=6)
+  
+  ### visualize the WP CIs
+  for (phi in phis) {
+    plot_wp_both_boot_rcb_vs_time_d = visualize_wp(WP_true, N=N, wp_true=TRUE, wp_xgb_model=xgb_pp, wp_boot_mat=viz_df_boot, boot_method_="RCB", phi_=phi, demo=TRUE, option=1)
+    ggsave(paste0("plots/", sim_str, "_plot_wp_both_boot_","RCB","_phi",phi,"_vs_time_d.png"), plot_wp_both_boot_rcb_vs_time_d, width=8, height=6)
+  }
 }

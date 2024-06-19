@@ -10,7 +10,8 @@ m = as.numeric(args[1]) ### sim index
 source("sim_main.R")
 RETUNE_XGB = FALSE
 # NUM_WP_ACTUAL_BINS = 50 
-NUM_WP_ACTUAL_BINS = 20
+# NUM_WP_ACTUAL_BINS = 20
+NUM_WP_ACTUAL_BINS = 10
 N = 56
 K = 56
 # G = 4101
@@ -18,6 +19,13 @@ G = 4096
 g = G*(K/N)
 sim_str = get_param_combo_str(g,G,N,K,m)
 print(sim_str)
+
+phi_vec = c(1, 0.75, 0.5, 0.4, 0.35, 0.3)
+df_boot_method = tibble(
+  boot_method = c("SB", "CB", rep("RCB", length(phi_vec))),
+  phi = c(1, 1, phi_vec)
+)
+df_boot_method
 
 #######################################
 ### Get XGBoost WP model and params ###
@@ -123,13 +131,6 @@ write_csv(loss_results_df_binned, paste0("xgb_covg/", sim_str, "_loss_df_binned.
 ########################################
 ### XGBoost bootstrapped predictions ###
 ########################################
-
-phi_vec = c(1, 0.75, 0.5, 0.4, 0.3)
-df_boot_method = tibble(
-  boot_method = c("SB", "CB", rep("RCB", length(phi_vec))),
-  phi = c(1, 1, phi_vec)
-)
-df_boot_method
 
 wp_preds = array(dim=c(nrow(df_test), B, nrow(df_boot_method)))
 wp_preds_viz = array(dim=c(nrow(df_visualize_wp), B, nrow(df_boot_method)))
