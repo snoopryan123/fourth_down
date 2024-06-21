@@ -7,7 +7,8 @@ df_GK_1 =
   tibble(data.frame(
     N = N,
     zeta = 4101,
-    K = 1:N
+    K = seq(1,N,by=5)
+    # K = 1:N
   )) %>%
   # mutate(G = 4101*K)
   mutate(
