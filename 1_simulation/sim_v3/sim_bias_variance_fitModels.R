@@ -14,7 +14,7 @@ for (i in 1:nrow(df_bvsim)) {
   zeta = df_bvsim$zeta[i]
   bvsimidx = df_bvsim$bv_sim_idx[i]
   
-  sim_str = get_param_combo_str(zeta,G,N,K,m,bvsimidx=bvsimidx)
+  sim_str = get_param_combo_str(zeta,G,N,K,m)
   print(sim_str)
   
   ### generate training dataset
