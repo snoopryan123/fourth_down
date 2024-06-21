@@ -1,71 +1,14 @@
 
 source("sim_bias_variance_main.R")
 
-########################################
-### load bias-variance sim 2 results ###
-########################################
+##################################
+### load bias-variance results ###
+##################################
 
 ### generate testing dataset 
 set.seed(8753298)
 df_test = simulate_football_season(G=1000,N=56,K=1)
 print(df_test)
-
-### Results for Bias-Variance Sim 2
-df_bvsim_2 = df_bvsim %>% filter(bv_sim_idx == 2)
-df_results = tibble()
-for (i in 1:nrow(df_bvsim_2)) {
-  N = df_bvsim$N[i]
-  K = df_bvsim$K[i]
-  G = df_bvsim$G[i]
-  zeta = df_bvsim$zeta[i]
-  bvsimidx = df_bvsim$bv_sim_idx[i]
-  
-  df_test_gK = tibble()
-  for (m in 1:M) {
-    sim_str = get_param_combo_str(zeta,G,N,K,m)
-    print(sim_str)
-    
-    xgb_filename = paste0("xgb_models/", "xgb_", sim_str, ".xgb")
-    xgb_model = xgb.load(xgb_filename)
-    
-    df_test_gKm = df_test
-    df_test_gKm$r = 1:nrow(df_test_gKm)
-    df_test_gKm = 
-      df_test_gKm %>% 
-      mutate(
-        wp_pred = predict_xgb(xgb_model, .),
-        m = m
-      )
-    df_test_gK = bind_rows(df_test_gK, df_test_gKm)
-  }
-  
-  df_results_gK = 
-    df_test_gK %>%
-    group_by(r) %>%
-    mutate(mean_wp_pred = mean(wp_pred)) %>%
-    group_by(m) %>%
-    summarise(
-      bias_sq_m = mean( (wp_actual - wp_pred)**2      ),
-      var_m     = mean( (wp_pred   - mean_wp_pred)**2 ),
-    ) %>%
-    ungroup() %>%
-    mutate(bv_rsum_m = sqrt(bias_sq_m + var_m)) %>%
-    summarise(
-      bias_sq = mean(bias_sq_m), 
-      var = mean(var_m), 
-      bv_rsum = mean(bv_rsum_m), 
-      se_bias_sq = sd(bias_sq_m)/sqrt(M),
-      se_var = sd(var_m)/sqrt(M),
-      se_bv_rsum = sd(bv_rsum_m)/sqrt(M)
-    ) %>%
-    mutate(g=g,G=G,N=N,K=K)
-  df_results = bind_rows(df_results, df_results_gK)
-  
-  
-  
-}
-
-
 
 # gs_vec = 4**(4:8)
 gs_vec = round(4**seq(4,7.5,by=0.5))

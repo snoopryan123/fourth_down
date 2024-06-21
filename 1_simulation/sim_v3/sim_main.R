@@ -318,7 +318,7 @@ simulate_football_season <- function(G,N,K) {
       y = case_when(
         s_final > 0 ~ 1,
         s_final < 0 ~ 0,
-        TRUE ~ as.numeric(rbernoulli(1, p=1/2)) # if tied at end of regulation, win prob is 1/2, so use a coin flip
+        TRUE ~ as.numeric(rbinom(1, 1, prob=1/2)) # if tied at end of regulation, win prob is 1/2, so use a coin flip
       )
     ) %>% 
     ungroup()
