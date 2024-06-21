@@ -1,0 +1,12 @@
+booster: gbtree
+objective: multi:softprob
+eval_metric: mlogloss
+num_class: 3.0
+eta: 0.0453573
+gamma: 0.0013761
+subsample: 0.6698295
+colsample_bytree: 0.8924051
+max_depth: 4
+min_child_weight: 6
+nrounds: 592
+

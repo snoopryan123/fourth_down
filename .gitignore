@@ -8,14 +8,13 @@ old
 old/*
 OLD
 OLD/*
-1_simulation/sim_v2/job_output/*
 *.xgb
 *.rds
 
-1_simulation/sim_v3/job_output/*
-1_simulation/sim_v3/xgb_models/*
-1_simulation/sim_v3/xgb_params/*
-1_simulation/sim_v3/xgb_covg/*
+*/job_output/*
+*/xgb_models/*
+*/xgb_params/*
+*/xgb_covg/*
 
 !ep0.rds
 !ep00.rds

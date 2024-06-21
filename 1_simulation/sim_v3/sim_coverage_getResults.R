@@ -13,7 +13,8 @@ G = 4096
 g = G*(K/N)
 sim_str_0 = get_param_combo_str_0(g,G,N,K)
 print(sim_str_0)
-phi_vec = c(1, 0.75, 0.5, 0.4, 0.3)
+# phi_vec = c(1, 0.75, 0.5, 0.4, 0.3)
+phi_vec = c(1, 0.75, 0.5, 0.35)
 
 ########################################################################
 ### Load the loss, CI coverage, and CI length data from all the sims ###
@@ -27,6 +28,7 @@ covg_df_binned = tibble()
 M = 100
 for (m in 1:M) {
   sim_str = get_param_combo_str(g,G,N,K,m)
+  sim_str = str_replace(sim_str, "zeta", "g") #FIXME # OLD VERSION
   print(sim_str)
   
   # loss_df_s = read_csv(paste0("xgb_covg/", sim_str, "_loss_df.csv"), show_col_types = FALSE)
@@ -183,10 +185,13 @@ for (phi_ in phi_vec) {
       legend.title=element_text(size=15),
       legend.text=element_text(size=15)
     ) +
-    scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-    ylab("CI coverage") +
+    # scale_y_continuous(breaks=seq(0,1,by=0.1)) +
+    ylab("coverage") +
     xlab("true win probability") +
-    scale_y_continuous(breaks=seq(0,1,by=0.05)) +
+    scale_y_continuous(
+      breaks=seq(0,1,by=0.05),
+      limits = c(0.7, 1)
+    ) +
     theme(
       # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13),
       axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -217,7 +222,7 @@ for (phi_ in phi_vec) {
       legend.text=element_text(size=15)
     ) +
     geom_point(size=2) +
-    ylab("CI width") +
+    ylab("width") +
     xlab("true win probability") +
     theme(
       # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13),
