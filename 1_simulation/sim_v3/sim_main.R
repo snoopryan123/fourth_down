@@ -323,13 +323,21 @@ simulate_football_season <- function(G,N,K) {
     ) %>% 
     ungroup()
   
-  if (K == N) {
-    df1 = df
-  } else if (K == 1) {
-    df1 = df %>% filter( n-1 == ((g-1)%%N) )
-  } else {
-    stop("haven't implemented K where 1<K<N")
-  }
+  ### keep a random sample of K plays per game
+  df1 = 
+    df %>%
+    group_by(g) %>%
+    slice_sample(n=K) %>%
+    ungroup() %>%
+    arrange(g,n)
+  
+  # if (K == N) {
+  #   df1 = df
+  # } else if (K == 1) {
+  #   df1 = df %>% filter( n-1 == ((g-1)%%N) )
+  # } else {
+  #   stop("haven't implemented K where 1<K<N")
+  # }
   
   WP_true = get_WP_true_mat(N)
   df2 = df1 %>%
@@ -496,12 +504,14 @@ tune_xgboost <- function(train_df, val_df, params_filename, grid_size=40) {
 ### K == num plays to keep per game
 ##################################################
 
-get_param_combo_str <- function(g,G,N,K,m) {
-  paste0("sim", "_g", g, "_G", G, "_N", N, "_K", K, "_m", m)
+get_param_combo_str <- function(zeta,G,N,K,m,bvsimidx=NULL) {
+  paste0("sim", if (!is.null(bvsimidx)) paste0("_bv",bvsimidx),
+         "_zeta", zeta, "_G", G, "_N", N, "_K", K, "_m", m)
 }
 
-get_param_combo_str_0 <- function(g,G,N,K) {
-  paste0("sim", "_g", g, "_G", G, "_N", N, "_K", K)
+get_param_combo_str_0 <- function(zeta,G,N,K,bvsimidx=NULL) {
+  paste0("sim", if (!is.null(bvsimidx)) paste0("_bv",bvsimidx),
+         "_zeta", zeta, "_G", G, "_N", N, "_K", K)
 }
 
 ### find reasonable values for (G,N)

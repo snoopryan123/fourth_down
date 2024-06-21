@@ -150,9 +150,13 @@ plot_loss_df_binned =
   geom_errorbar(aes(ymin=bias_L, ymax=bias_U)) +
   ylab("|bias|") +
   xlab("true win probability") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13))
+  theme(
+    # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+  )
 # plot_loss_df_binned
-ggsave(paste0("plots/", sim_str_0, "_plot_loss_df_binned.png"), plot_loss_df_binned, width=15, height=5)
+ggsave(paste0("plots/", sim_str_0, "_plot_loss_df_binned.png"), 
+       width=10, height=4)
 
 for (phi_ in phi_vec) {
   print(paste0("phi=",phi_))
@@ -172,6 +176,7 @@ for (phi_ in phi_vec) {
     ) %>%
     pivot_longer(cols = c(avg_covg_2)) %>%
     ggplot(aes(x = wp_actual_bin, y=value)) +
+    geom_hline(yintercept=0.9, color="gray60", linetype="dashed", linewidth=1) +
     geom_point() +
     geom_errorbar(aes(ymin=covg_2_L, ymax=covg_2_U)) +
     theme(
@@ -181,9 +186,14 @@ for (phi_ in phi_vec) {
     scale_y_continuous(breaks=seq(0,1,by=0.1)) +
     ylab("CI coverage") +
     xlab("true win probability") +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13))
+    scale_y_continuous(breaks=seq(0,1,by=0.05)) +
+    theme(
+      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+    )
   # plot_covg_df_binned
-  ggsave(paste0("plots/", sim_str_0,"_plot_ci_covg_df_binned","_phi",phi_,".png"), plot_covg_df_binned, width=15, height=5)
+  ggsave(paste0("plots/", sim_str_0,"_plot_ci_covg_df_binned","_phi",phi_,".png")
+         , width=10, height=4)
   
   ## PLOT CI length as a function of actual WP
   plot_ci_len_df_binned = 
@@ -209,14 +219,19 @@ for (phi_ in phi_vec) {
     geom_point(size=2) +
     ylab("CI width") +
     xlab("true win probability") +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13))
+    theme(
+      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=13),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+    )
   # plot_ci_len_df_binned
-  ggsave(paste0("plots/", sim_str_0,"_plot_ci_width_df_binned","_phi",phi_,".png"), plot_ci_len_df_binned, width=15, height=5)
+  ggsave(paste0("plots/", sim_str_0,"_plot_ci_width_df_binned","_phi",phi_,".png"),
+         width=10, height=4)
   
   ### combined plot
   plot_combined = cowplot::plot_grid(plot_loss_df_binned, plot_covg_df_binned, plot_ci_len_df_binned, ncol=1)
   # plot_combined
-  save_plot(paste0("plots/", sim_str_0,"_plot_wp_binned","_phi",phi_,".png"), plot_combined, base_width=18, base_height=21)
+  save_plot(paste0("plots/", sim_str_0,"_plot_wp_binned","_phi",phi_,".png"),
+            plot_combined, base_width=10, base_height=15)
 }
 
 ########################
