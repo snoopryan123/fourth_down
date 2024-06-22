@@ -1,6 +1,7 @@
 
 source("../../0_clean_lm.R")
 source("sim_main.R")
+zeta_str = "\U03B6"
 
 ### show that as dependence K decreases, accuracy increases
 df_GK_1 = 
