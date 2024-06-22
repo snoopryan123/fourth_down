@@ -117,7 +117,13 @@ plot_bias_var_1A =
              labeller = label_names) +
   geom_point(size=2) +
   geom_errorbar(aes(ymin = value_L, ymax = value_U)) +
-  geom_smooth(se=F, method = "lm", linewidth=1.5, color="gray60")
+  geom_smooth(se=F, method = "lm", linewidth=1.5, color="gray60") +
+  theme(
+    strip.text.x = element_text(size=30),
+    legend.text = element_text(size=25),
+    axis.title = element_text(size=30),
+    axis.text = element_text(size=25),
+  )
 # plot_bias_var_1A
-ggsave("plots/plot_bias_var_1A.png", plot_bias_var_1A, width=15, height=4)
+ggsave("plots/plot_bias_var_1A.png", plot_bias_var_1A, width=16, height=4)
 

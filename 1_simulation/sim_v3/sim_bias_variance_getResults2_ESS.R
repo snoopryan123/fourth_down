@@ -17,9 +17,9 @@ df_bvsim_2 =
   filter(bv_sim_idx == 2) %>%
   mutate(
     desc = case_when(
-      G == zeta & K == N ~ paste0("(G=",zeta_str,", K=",K,")"),
-      G == zeta & K == 1 ~ paste0("(G=",zeta_str,", K=",K,")"),
-      G == zeta*N & K == 1 ~ paste0("(G=",zeta_str,"•T, K=",K,")"),
+      G == zeta & K == N ~ paste0("(G=",zeta_str,", K=","T",")"),
+      G == zeta & K == 1 ~ paste0("(G=",zeta_str,", K=",1,")"),
+      G == zeta*N & K == 1 ~ paste0("(G=",zeta_str,"•T, K=",1,")"),
     ),
     desc1 = case_when(
       G == zeta & K == N ~ "A",
@@ -131,9 +131,15 @@ plot_bias_var_2A =
   # theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   scale_fill_manual(name="", values=colors_vec) +
   scale_color_manual(name="", values=colors_vec) +
-  xlab(TeX("$log_4(zeta)$")) 
+  xlab(TeX("$log_4(zeta)$")) +
+  theme(
+    strip.text.x = element_text(size=30),
+    legend.text = element_text(size=25),
+    axis.title = element_text(size=30),
+    axis.text = element_text(size=25),
+  )
 # plot_bias_var_2A
-ggsave("plots/plot_bias_var_2A.png", plot_bias_var_2A, width=15, height=4)
+ggsave("plots/plot_bias_var_2A.png", plot_bias_var_2A, width=16, height=4)
 
 plot_bias_var_2B = 
   df_results_1 %>%
@@ -153,9 +159,15 @@ plot_bias_var_2B =
   # theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   scale_fill_manual(name="", values=colors_vec) +
   scale_color_manual(name="", values=colors_vec) +
-  xlab(TeX("$log_4(zeta)$")) 
+  xlab(TeX("$log_4(zeta)$")) +
+  theme(
+    strip.text.x = element_text(size=30),
+    legend.text = element_text(size=25),
+    axis.title = element_text(size=30),
+    axis.text = element_text(size=25),
+  )
 # plot_bias_var_2B
-ggsave("plots/plot_bias_var_2B.png", plot_bias_var_2B, width=15, height=4)
+ggsave("plots/plot_bias_var_2B.png", plot_bias_var_2B, width=16, height=4)
 
 # ### plot loss ratio
 # df_loss_ratio = 
