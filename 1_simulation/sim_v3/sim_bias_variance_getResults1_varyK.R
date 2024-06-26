@@ -59,14 +59,14 @@ for (i in 1:nrow(df_bvsim_1)) {
       var_m     = mean( (wp_pred   - mean_wp_pred)**2 ),
     ) %>%
     ungroup() %>%
-    mutate(mse_m = sqrt(bias_sq_m + var_m)) %>%
+    mutate(rmse_m = sqrt(bias_sq_m + var_m)) %>%
     summarise(
       bias_sq = mean(bias_sq_m), 
       var = mean(var_m), 
-      mse = mean(mse_m), 
+      rmse = mean(rmse_m), 
       se_bias_sq = sd(bias_sq_m)/sqrt(M),
       se_var = sd(var_m)/sqrt(M),
-      se_mse = sd(mse_m)/sqrt(M)
+      se_rmse = sd(rmse_m)/sqrt(M)
     ) %>%
     mutate(K=K)
     # mutate(df_bvsim_1[i,])
@@ -98,7 +98,7 @@ df_results_1
 label_names = as_labeller(c(
   'bias_sq'="bias^2",
   'var'="variance",
-  'mse'="MSE"
+  'rmse'="RMSE"
 ), label_parsed)
 # colors_vec = c("dodgerblue2", "firebrick", "orange")
 # names(colors_vec) = c(unique(df_results_1$desc)[1], unique(df_results_1$desc)[3], unique(df_results_1$desc)[2]) 
@@ -112,7 +112,7 @@ plot_bias_var_1A =
     x = K,
     # color=factor(K), fill = factor(K)
   )) +
-  facet_wrap(~factor(name, levels=c("bias_sq", "var", "mse")),
+  facet_wrap(~factor(name, levels=c("bias_sq", "var", "rmse")),
              scales = "free_y",
              labeller = label_names) +
   geom_point(size=2) +

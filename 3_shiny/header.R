@@ -13,9 +13,12 @@ library(gt)
 ### 4th down decision making directory
 source("../0_clean_lm.R")
 shiny_wd = getwd()
-setwd("../2_Decision_Making")
+# setwd("../2_Decision_Making")
+LOADDATA = FALSE
+setwd("../2_Decision_Making_fullBootPhi1")
+# setwd("../2_Decision_Making_fullBootPhi0.35")
 source("D3_decision_making_functions.R")
-source("D6_loadModels.R")
+source("D6_loadModelsAndData.R")
 setwd(shiny_wd)
 
 #############

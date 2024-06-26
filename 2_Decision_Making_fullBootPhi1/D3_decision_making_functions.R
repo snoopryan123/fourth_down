@@ -877,15 +877,18 @@ get_all_decision_making <- function(plays_df, wp, og_method=FALSE, SE=FALSE, b_m
       mutate(get_coach_decision_freqs(., coach_model)) %>%
       mutate(V_baseline = C_Go*V_go + C_FG*V_fg + C_Punt*V_punt)
     
-    result = result %>%
-      rowwise() %>%
-      mutate(V_actual = case_when(
-        decision_actual == "Go" ~ V_go,
-        decision_actual == "FG" ~ V_fg,
-        decision_actual == "Punt" ~ V_punt,
-      )) %>%
-      ungroup() %>%
-      mutate(V_added = V_actual - V_baseline) 
+    if ("decision_actual" %in% colnames(result)) {
+      result = result %>%
+        rowwise() %>%
+        mutate(V_actual = case_when(
+          decision_actual == "Go" ~ V_go,
+          decision_actual == "FG" ~ V_fg,
+          decision_actual == "Punt" ~ V_punt,
+        )) %>%
+        ungroup() %>%
+        mutate(V_added = V_actual - V_baseline)
+    }
+ 
   }
   
   # return(result)

@@ -358,6 +358,8 @@ server <- function(input, output, session) {
         ddf_wp_se = suppressWarnings(
           get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=TRUE, b_max=isolate(as.numeric(input$num_B)), custom_conv_prob=custom_conv_prob_, coachBaseline = TRUE)
         )
+        ddf_wp_se = ddf_wp_se$Vs ###
+        
         if (!ignore_EP) {
           ddf_ep_se = suppressWarnings(
             get_full_decision_making(play_df=generate_gamestate_df(), wp=FALSE, SE=TRUE, b_max=isolate(as.numeric(input$num_B)), custom_conv_prob=custom_conv_prob_, coachBaseline = TRUE)
@@ -429,7 +431,7 @@ server <- function(input, output, session) {
       punt_plot = plot_punt_eny_by_pq(punt_model_obs, pq=isolate(input$pq_input))
       output$punt_eny_plot <- renderPlot({ punt_plot })
       if (!as.logical(isolate(input$use_custom_conv_prob))) {
-        conv_plot = plot_conv_(go_model_obs, qbq_ot_0_sum=isolate(input$qbq_ot_input), 
+        conv_plot = plot_conv_2(go_model_obs, qbq_ot_0_sum=isolate(input$qbq_ot_input), 
                                oq_rot_0_total_sum=isolate(input$oq_rot_input), 
                                dq_dt_0_againstPass_sum=isolate(input$dq_dt_0_againstPass_input), 
                                dq_dt_0_againstRun_sum=isolate(input$dq_dt_0_againstRun_input)) 
