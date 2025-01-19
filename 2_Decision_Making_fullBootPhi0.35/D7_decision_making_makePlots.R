@@ -140,8 +140,8 @@ grid_to_plot
 
 ####################################
 # for (j in 1:6) {
-# for (j in c(3,4,6,8,7)) {
-for (j in 1:nrow(grid_to_plot)) {
+for (j in c(3,4,6,8,7)) {
+# for (j in 1:nrow(grid_to_plot)) {
   
   ############## play description ############## 
   i = grid_to_plot[j,]$i

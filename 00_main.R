@@ -135,6 +135,13 @@ go_df =
   mutate(convert = as.numeric(yards_gained >= ydstogo))
 go_df
 
+go_df_ = 
+  data_full_WP %>%
+  filter(down == 3 | down == 4) %>%
+  drop_na(pass_or_rush) %>%
+  mutate(convert = as.numeric(yards_gained >= ydstogo))
+go_df_
+
 #### dataframe of all fourth down decisions
 all_fourth_downs = 
   data_full_WP %>%

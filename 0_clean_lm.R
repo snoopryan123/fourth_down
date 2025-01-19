@@ -149,7 +149,9 @@ plot_fg_prob_by_kq <- function(fg_model, kq=NULL) {
     mutate(color_col = fct_reorder(color_col, -1*kq_0_sum_std)) %>%
     ggplot(aes(x = yardline_100, y = p, color = color_col)) +
     geom_line(linewidth=1) +
-    ylab("field goal make probability") + xlab("yardline") +
+    ylab("field goal make probability") + 
+    xlab("yards to opponent endzone") + 
+    # xlab("yardline") +
     labs(color=" kicker\n quality") +
     scale_y_continuous(breaks=seq(0,1,by=0.1)) +
     scale_x_continuous(
@@ -185,7 +187,9 @@ plot_punt_eny_by_pq <- function(punt_model, pq=NULL) {
     mutate(color_col = fct_reorder(color_col, -1*pq_0_sum_std)) %>%
     ggplot(aes(x = yardline_100, y = p, color = color_col)) +
     geom_line(size=1) +
-    ylab("expected next yardline") + xlab("yardline") +
+    ylab("expected next yardline") + 
+    xlab("yards to opponent endzone") + 
+    # xlab("yardline") +
     labs(color=" punter\n quality") +
     scale_y_continuous(breaks=seq(0,100,by=10)) +
     scale_x_continuous(breaks=seq(0,100,by=10), limits=c(30,100)) +
@@ -236,7 +240,7 @@ plot_conv_prob_by_tq <- function(conv_prob_model) {
       # facet_wrap(~model) +
       geom_line(size=1) +
       ylab("conversion probability") + xlab("yards to go") +
-      labs(color=" offensive\n quality\n of the rest\n of the\n offensive team", title=title) +
+      labs(color=" offensive\n quality\n of the rest\n of the\n offensive\n team", title=title) +
       scale_y_continuous(breaks=seq(0,1,by=0.1)) +
       scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
       theme(
@@ -361,7 +365,7 @@ plot_conv_prob_by_tq <- function(conv_prob_model) {
     pdp2
     pdr2 = plot_conv_prob_model_varyDR(drqtib2)
     pdr2
-    pqod2 = cowplot::plot_grid(pq2, po2, pdp2, pdr2, nrow=1)
+    pqod2 = cowplot::plot_grid(pq2, po2, pdp2, pdr2, nrow=2)
     pqod2
   }
 }
@@ -379,7 +383,8 @@ plot_conv_1 <- function(conv_model, qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_
     ggplot(aes(x = yardline_100, y=p_conv, color=factor(ydstogo))) +
     geom_line(linewidth=1) +
     ylab("conversion probability") +
-    xlab("yardline") +
+    xlab("yards to opponent endzone") + 
+    # xlab("yardline") +
     scale_x_continuous(breaks=seq(0,100,by=10)) +
     scale_y_continuous(breaks=seq(0,1,by=0.05)) +
     labs(color=" yards\n to go") +
@@ -403,6 +408,7 @@ plot_conv_2 <- function(conv_model, qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_
     expand.grid(yardline_100 = 1:99, ydstogo=1:15) %>%
     filter(0 < yardline_100 - ydstogo & yardline_100 + ydstogo < 100) %>%
     filter(0 < yardline_100 - ydstogo & yardline_100 - ydstogo < 100) %>%
+    mutate(posteam_spread = 0) %>% #FIXME
     mutate(qbq_ot_0_sum=qbq_ot_0_sum, oq_rot_0_total_sum=oq_rot_0_total_sum, 
            dq_dt_0_againstPass_sum=dq_dt_0_againstPass_sum, dq_dt_0_againstRun_sum=dq_dt_0_againstRun_sum, 
            down=4) %>%
@@ -451,7 +457,8 @@ plot_go_exp_outcome_1 <- function(
     ggplot(aes(x = yardline_100, y=E_outcome, color=factor(ydstogo))) +
     geom_line(linewidth=1) +
     ylab("expected yards gained") +
-    xlab("yardline") +
+    xlab("yards to opponent endzone") +
+    # xlab("yardline") +
     scale_x_continuous(breaks=seq(0,100,by=10)) +
     labs(color=" yards\n to go", 
          subtitle= paste0("given a ", if (success) "successful" else "failed",  " conversion")) +

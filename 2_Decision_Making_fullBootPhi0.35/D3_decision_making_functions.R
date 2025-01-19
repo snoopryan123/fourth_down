@@ -1013,7 +1013,8 @@ plot_4thDownHeatmap <- function(decision_df, wp, og_method=FALSE, title=TRUE, le
   #   scale_fill_gradientn(colors = colors_fg, values = values_b, limits = limits_b, breaks=breaks_b) +
   #   guides(fill = guide_legend(title=" FG",label.hjust = 0.5, label.vjust = 1, order = 1))
   
-  p = decision_df %>%
+  p =
+    decision_df %>%
     ggplot(aes(x = yardline_100, y = ydstogo)) +
     geom_tile(data = . %>% filter(decision == "Go"), aes(fill = .data[[fill_var]])) +
     scale_fill_gradientn(colors = colors_go, values = values_b, limits = limits_b, breaks=breaks_b) +
@@ -1028,7 +1029,7 @@ plot_4thDownHeatmap <- function(decision_df, wp, og_method=FALSE, title=TRUE, le
     guides(fill = guide_legend(title=" Punt",label.hjust = 0.5, label.vjust = 1, order = 1)) +
     geom_point(x=ydl, y=ytg, size=3, stroke=2, color="magenta", fill="white", shape=21)
   p
-  # browser()
+  
   if (title) {
     p = p + labs(title=V_title)
   }
@@ -1051,7 +1052,9 @@ plot_4thDownHeatmap <- function(decision_df, wp, og_method=FALSE, title=TRUE, le
   }
   
   p = p +
-    xlab("yardline") + ylab("yards to go") +
+    # xlab("yardline") + 
+    xlab("yards to opponent endzone") + 
+    ylab("yards to go") +
     scale_y_continuous(breaks=seq(1,10,by=1), minor_breaks = seq(1,10,by=1)) +
     scale_x_continuous(breaks=seq(10,90,by=10)) +
     theme(
@@ -1139,7 +1142,9 @@ plot_Vs <- function(ddf, ytg, SE=FALSE, include_og=FALSE, wp=FALSE) {
     geom_line(aes(y = V_go, color="Go"), size=1) +
     scale_color_manual(name="", values=c("Punt"="firebrick", "Go"="forestgreen", "FG"="goldenrod2")) +
     labs(title=plot_title) +
-    xlab("yardline") + ylab(ylab_) +
+    # xlab("yardline") + 
+    xlab("yards to opponent endzone") + 
+    ylab(ylab_) +
     scale_x_continuous(breaks=seq(0,100,by=10), limits=c(0,100)) +
     scale_y_continuous(breaks=breaks, 
                        limits=c(y_min,y_max)
@@ -1295,7 +1300,10 @@ plot_4th_down_lookahead <- function(ddf, ydl, SE=FALSE, boot_plot=FALSE, wp=FALS
       scale_y_continuous(breaks=seq(0,1,by=0.1), limits=c(0,1)) +
       scale_x_continuous(
         breaks=seq(1,15,by=2),
-        sec.axis = sec_axis(~.x+ydl-ytg_, breaks = seq(ydl-100,ydl+100,by=5), name="yardline")
+        sec.axis = sec_axis(~.x+ydl-ytg_, breaks = seq(ydl-100,ydl+100,by=5), 
+                            # name="yardline"
+                            name = "yards to opponent endzone"
+                            )
       ) 
     plot_decision
     return(plot_decision)
@@ -1327,7 +1335,10 @@ plot_4th_down_lookahead <- function(ddf, ydl, SE=FALSE, boot_plot=FALSE, wp=FALS
     xlab("yards to go") + ylab(ylab_) +
     scale_x_continuous(
       breaks=seq(1,15,by=2),
-      sec.axis = sec_axis(~.x+ydl-ytg_, breaks = seq(ydl-100,ydl+100,by=5), name="yardline")
+      sec.axis = sec_axis(~.x+ydl-ytg_, breaks = seq(ydl-100,ydl+100,by=5), 
+                          name = "yards to opponent endzone"
+                          # name="yardline"
+                          )
     ) 
   plot_decision
  
@@ -1368,7 +1379,7 @@ plot_gt_4th_down_summary <- function(play_df, ddf, decision_df=NULL, SE=FALSE, w
     if (play_df$score_differential == 0) "Tied" else {
       paste0(abs(play_df$score_differential), " points ", if (play_df$score_differential < 0) "down" else "up")
     },
-    ", 4th & ", play_df$ydstogo, ", ", play_df$yardline_100, " yards from opponent endzone"
+    ", 4th & ", play_df$ydstogo, ", ", play_df$yardline_100, " yards to opponent endzone"
   )
   a1
   

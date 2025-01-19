@@ -1,6 +1,6 @@
 
 ### load bootstrap hyperparams
-phi = 1 
+phi = 1
 B = 101 # justified by the stability analysis
 
 ### load data
@@ -81,7 +81,7 @@ for (b in 1:B) {
     ggsave(paste0("plots_models/plot_punt_model.png"), width=8, height=5)
     ### plot conversion success probability
     plot_conv_prob = plot_conv_prob_by_tq(go_model_fit)
-    ggsave(paste0("plots_models/plot_conv_prob.png"), width=30, height=5)
+    ggsave(paste0("plots_models/plot_conv_prob.png"), width=16, height=11)
     plot_conv_prob_1 = plot_conv_1(go_model_fit)
     ggsave(paste0("plots_models/plot_conv_prob_1.png"), width=8, height=5)
     plot_conv_prob_2 = plot_conv_2(go_model_fit)

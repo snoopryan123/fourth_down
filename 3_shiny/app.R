@@ -310,7 +310,7 @@ server <- function(input, output, session) {
       # browser()
     } else {
       ### FOURTH DOWN
-
+      
       ### generate WP plots
       # browser(); ddf_wp = get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=FALSE);
       # browser()
@@ -319,6 +319,7 @@ server <- function(input, output, session) {
         get_full_decision_making(play_df=generate_gamestate_df(), wp=TRUE, SE=FALSE, custom_conv_prob=custom_conv_prob_, coachBaseline=TRUE, post_TD=FALSE)
       )
       
+      # browser()
       list_heatmap_wp = plot_4thDownHeatmap(ddf_wp, wp=TRUE, og_method=FALSE, title=TRUE, SE=FALSE, 
                                             legend_pos="separate", ydl=isolate(input$yardline), ytg=isolate(input$ydstogo))
       heatmap_wp = list_heatmap_wp$plot

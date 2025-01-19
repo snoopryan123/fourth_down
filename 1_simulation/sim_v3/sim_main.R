@@ -237,6 +237,8 @@ visualize_wp <- function(WP_true, N, wp_true=TRUE, wp_xgb_model=NULL, wp_boot_ma
       guides(color=guide_legend(title=" field\n position\n x")) +
       guides(linetype=guide_legend(title="WP")) +
       scale_color_manual(values = c("firebrick", "black", "dodgerblue2"))
+  } else if (option == 3) {
+    return(plot_df_A)
   }
 }
 
