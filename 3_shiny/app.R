@@ -15,22 +15,7 @@ source("header.R")
   
       sidebarPanel(
         actionButton("generate_plots", "Generate Plots", class = "btn-warning"),
-        
-        h4("Settings:"),
-        # selectInput("ignore_EP", "ignore expected points models", choices = c("no", "yes"), selected="yes"),
-        selectInput("ignore_EP", "ignore expected points models", choices = c("yes"), selected="yes"),
-        selectInput("dec_conf_str", "decision confidence label", choices = c("TRUE", "FALSE"), selected="FALSE"),
-        # h5("• ignoring EP means faster runtime."),
-        
-        h4("Uncertainty Settings:"),
-        selectInput("num_B", "number of bootstrap samples", choices = c("0", "25", "100"), selected="25"),
-        # h5("• 0 bootstrap samples means no uncertainty plots."),
-        # h5("• fewer bootstrap samples means faster runtime."),
-        
-        h4("4th Down Conversion Probability Settings:"),
-        selectInput("use_custom_conv_prob", "use custom conversion probability", choices = c("TRUE", "FALSE"), selected="FALSE"),
-        sliderInput("custom_conv_prob", "custom conversion probability (only used if above is set to TRUE)", min = 0, max = 1, value = 0.50, step=0.01, pre = ""),
-        
+
         # h4("Post-TD Settings:"),
         # selectInput("post_TD", "post-TD decision (extra point vs. conversion)", choices = c("TRUE", "FALSE"), selected="FALSE"),
         # selectInput("post_TD_custom_conv_prob", "use post-TD custom conv prob (e.g. 0.48)", choices = c("TRUE", "FALSE"), selected="TRUE"),
@@ -40,30 +25,41 @@ source("header.R")
 
         h4("Game State:"),
         sliderInput("score_differential", "score differential", min = -30, max = 30, value = 0, step=1, pre = ""),
-        sliderInput("total_score", "total score", min = 0, max = 120, value = 0, step=1, pre = ""),
-        # sliderInput("game_seconds_remaining", "game seconds remaining", min = 0, max = 3600, value = 720, step=60, pre = ""),
+        sliderInput("total_score", "total score", min = 0, max = 120, value = 29, step=1, pre = ""),
         numericInput("game_seconds_remaining", "game seconds remaining", min = 0, max = 3600, value = 720, step=1),
-        sliderInput("posteam_spread", "point spread (of the offensive team)", min = -17, max = 17, value = 0, step=0.5, pre = ""),
+        sliderInput("posteam_spread", "pre-game point spread (of the offensive team)", min = -17, max = 17, value = 0, step=0.5, pre = ""),
+        sliderInput("total_line", "pre-game total points over/under line", min = 0, max = 125, value = 44, step=1, pre = ""),
         sliderInput("yardline", "yardline", min = 1, max = 99, value = 50, step=1, pre = ""),
         sliderInput("ydstogo", "yards to go", min = 1, max = 15, value = 3, step=1, pre = ""),
-        selectInput("home", "home", choices = c("home", "away"), selected="home"),
         selectInput("receive_2h_ko", "receive second half kickoff", choices = c("yes", "no"), selected="yes"),
         selectInput("posteam_timeouts_remaining", "offensive team's number of timeouts remaining", choices = c("3", "2", "1", "0"), selected="3"),
         selectInput("defteam_timeouts_remaining", "defensive team's number of timeouts remaining", choices = c("3", "2", "1", "0"), selected="3"),
         selectInput("era_A", "era", choices = c("2007-2013", "2014-2017", "2018-present"), selected="2018-present"),
+        selectInput("home", "home", choices = c("home", "away"), selected="home"),
         
         h4("For the field goal model:"),
         sliderInput("kq_input", "kicker quality", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = ""),
-        # selectInput("kq_input_Q", "kicker quality (qualitative)", choices = c("exceptional", "above average", "average", "below average",  "horrible", "quantitative"), selected="quantitative"),
-        
+
         h4("For the punt model:"),
         sliderInput("pq_input", "punter quality", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = ""),
   
-        h4("For the conversion model:"),
-        sliderInput("qbq_ot_input", "offensive team's quarterback quality", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = ""),
-        sliderInput("oq_rot_input", "offensive team's non-quarterback offensive quality", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = ""),
-        sliderInput("dq_dt_0_againstPass_input", "defensive team's defensive quality against the pass", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = ""),
-        sliderInput("dq_dt_0_againstRun_input", "defensive team's defensive quality against the run", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = ""),
+        # h4("For the conversion model:"),
+        # sliderInput("oqot_minus_dq_input", "offensive team's quarterback quality", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = "")
+        
+        h4("Uncertainty Settings:"),
+        selectInput("num_B", "number of bootstrap samples", choices = c("0", "25", "100"), selected="25"),
+        # h5("• 0 bootstrap samples means no uncertainty plots."),
+        # h5("• fewer bootstrap samples means faster runtime."),
+        
+        h4("Settings:"),
+        # selectInput("ignore_EP", "ignore expected points models", choices = c("no", "yes"), selected="yes"),
+        selectInput("ignore_EP", "ignore expected points models", choices = c("yes"), selected="yes"),
+        selectInput("dec_conf_str", "decision confidence label", choices = c("TRUE", "FALSE"), selected="FALSE"),
+        # h5("• ignoring EP means faster runtime."),
+        
+        h4("4th Down Conversion Probability Settings:"),
+        selectInput("use_custom_conv_prob", "use custom conversion probability", choices = c("TRUE", "FALSE"), selected="FALSE"),
+        sliderInput("custom_conv_prob", "custom conversion probability (only used if above is set to TRUE)", min = 0, max = 1, value = 0.50, step=0.01, pre = ""),
         
         width=3 
       ),
@@ -223,6 +219,8 @@ server <- function(input, output, session) {
       ydstogo = isolate(input$ydstogo),
       score_differential = isolate(input$score_differential),
       total_score = isolate(input$total_score),
+      posteam_spread = isolate(input$posteam_spread),
+      total_line = isolate(input$total_line),
       game_seconds_remaining = isolate(input$game_seconds_remaining),
       home = isolate(case_when(input$home == "home" ~ 1, input$home == "away" ~ 0)),
       receive_2h_ko = isolate(case_when(input$receive_2h_ko == "yes" ~ 1, input$receive_2h_ko == "no" ~ 0)),
@@ -235,15 +233,16 @@ server <- function(input, output, session) {
         input$era_A == "2018-present" ~ 4,
         # TRUE ~ 4
       ),
-      
-      posteam_spread = isolate(input$posteam_spread),
-      kq_0_sum_std = isolate(input$kq_input),
-      pq_0_sum_std = isolate(input$pq_input),
-      
-      qbq_ot_0_sum = isolate(input$qbq_ot_input),
-      oq_rot_0_total_sum = isolate(input$oq_rot_input),
-      dq_dt_0_againstPass_sum = isolate(input$dq_dt_0_againstPass_input),
-      dq_dt_0_againstRun_sum = isolate(input$dq_dt_0_againstRun_input),
+      kq = isolate(input$kq_input),
+      pq = isolate(input$pq_input),
+      market_OQOT_minus_DQDT = (total_line + -posteam_spread) / 2,
+      market_OQDT_minus_DQOT = (total_line - -posteam_spread) / 2,
+      mu_momd = 21.7405, #FIXME
+      sig_momd = 4.030279, #FIXME
+      mu_mdmo = 21.67276, #FIXME
+      sig_mdmo = 4.046451, #FIXME
+      market_OQOT_minus_DQDT_std = (market_OQOT_minus_DQDT - mu_momd) / sig_momd,
+      market_OQDT_minus_DQOT_std = (market_OQDT_minus_DQOT - mu_mdmo) / sig_mdmo,
       
       half_seconds_remaining = ifelse(game_seconds_remaining > 1800, game_seconds_remaining - 1800, game_seconds_remaining),
       half_sec_rem_std = 1 - half_seconds_remaining/1800,
@@ -260,12 +259,6 @@ server <- function(input, output, session) {
       spread_time = posteam_spread * exp(-4 * elapsed_share),
       Diff_Time_Ratio = score_differential / (exp(-4 * elapsed_share)),
       scoreTimeRatio = compute_scoreTimeRatio(score_differential, game_seconds_remaining),
-      
-      ### ignore these
-      qbq_dt_0_sum = 0,
-      oq_rdt_0_sum = 0,
-      dq_ot_0_againstPass_sum = 0,
-      dq_ot_0_againstRun_sum = 0
     )
     # browser()
     # print(df)
@@ -432,10 +425,13 @@ server <- function(input, output, session) {
       punt_plot = plot_punt_eny_by_pq(punt_model_obs, pq=isolate(input$pq_input))
       output$punt_eny_plot <- renderPlot({ punt_plot })
       if (!as.logical(isolate(input$use_custom_conv_prob))) {
-        conv_plot = plot_conv_2(go_model_obs, qbq_ot_0_sum=isolate(input$qbq_ot_input), 
-                               oq_rot_0_total_sum=isolate(input$oq_rot_input), 
-                               dq_dt_0_againstPass_sum=isolate(input$dq_dt_0_againstPass_input), 
-                               dq_dt_0_againstRun_sum=isolate(input$dq_dt_0_againstRun_input)) 
+        momds = generate_gamestate_df()$market_OQOT_minus_DQDT_std
+        conv_plot = plot_conv_prob_1(go_model_obs, momds)
+        # conv_plot = plot_conv_prob_momd(go_model_obs)
+        # conv_plot = plot_conv_2(go_model_obs, qbq_ot_0_sum=isolate(input$qbq_ot_input), 
+        #                        oq_rot_0_total_sum=isolate(input$oq_rot_input), 
+        #                        dq_dt_0_againstPass_sum=isolate(input$dq_dt_0_againstPass_input), 
+        #                        dq_dt_0_againstRun_sum=isolate(input$dq_dt_0_againstRun_input)) 
         output$conv_prob_plot <- renderPlot({ conv_plot })
       }
     }

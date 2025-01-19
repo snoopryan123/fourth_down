@@ -4,8 +4,8 @@
 ### 0. Get the data
 * run `d1_data_acquisition.R`
 * then run `d2_data_acquisition.R`
-* then run `d3_data_TeamQualityMetrics_epa0.R`
-* output `data7b.csv`
+* then run `d3_data_KickerAndPunterQuality.R`
+* output `data8a.csv`
 
 ### 1. Simulation study: random walk football in `1_simulation/sim_v2`
 * run `sim2.R` parallelized on a cluster via `run_sim_2_1_AJ.sh` and `run_sim_2_2_AJ.sh`

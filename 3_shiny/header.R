@@ -5,6 +5,9 @@ library(shinycustomloader)
 library(shinydashboard)
 library(gt)
 
+# which fractional bootstrap to use
+phi = 0.5 #FIXME
+
 ############################
 ### LOAD DATA AND MODELS ###
 ############################
@@ -13,11 +16,8 @@ library(gt)
 ### 4th down decision making directory
 source("../0_clean_lm.R")
 shiny_wd = getwd()
-# setwd("../2_Decision_Making")
+setwd("../2_Decision_Making")
 LOADDATA = FALSE
-# setwd("../2_Decision_Making_fullBootPhi1")
-setwd("../2_Decision_Making_fullBootPhi0.5")
-# setwd("../2_Decision_Making_fullBootPhi0.35")
 source("D3_decision_making_functions.R")
 source("D6_loadModelsAndData.R")
 setwd(shiny_wd)
@@ -35,8 +35,8 @@ map_qualitativeButton_to_stdSlider <- function(btn) {
   )
 }
 
-std_var_min = -1
-std_var_max = 1
+std_var_min = -2
+std_var_max = 2
 std_var_step = 0.1
 # loading_color = "#0dc5c1"
 loading_color = "#c5910d"

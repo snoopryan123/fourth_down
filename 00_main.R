@@ -8,63 +8,31 @@ WP = if(!exists("WP")) TRUE else WP ### default to expected points models
 ########################
 
 ### full dataset
-data_full_0 <- read_csv("data7b.csv") 
+data_full_0 <- read_csv("data8a.csv") 
 
 ### for some reason, the pointspread from nflFastR is flipped, so flip it back!
 data_full_0 <- data_full_0 %>% mutate(posteam_spread = -posteam_spread)
-
-### standardize some covariates 
-# std <- function(x, mu, sigma) { (x-mu) / (2*sigma) }
-std <- function(x) { (x-mean(x,.na.rm=TRUE)) / (2*sd(x,na.rm=TRUE)) }
 
 ### standardizing the columns as-is 
 data_full_0A = 
   data_full_0 %>% 
   mutate(
     posteam_coach = ifelse(home == 1, home_coach, away_coach),
-      
-    posteam_spread_std = std(posteam_spread),
-    kq_0_sum_std = std(kq0_sum), 
-    pq_0_sum_std =  std(pq0_sum), 
-    kq_0_dt_sum_std = std(kq0_dt_sum),
-    pq_0_dt_sum_std = std(pq0_dt_sum),
-    
-    # oq_op_0_sum = std(oq_op_0_sum),
-    oq_ot_0_total_sum = std(oq_ot_0_total_sum),
-    oq_rot_0_total_sum = std(oq_rot_0_total_sum),
-    qbq_ot_0_sum = std(qbq_ot_0_sum),
-    dq_dt_0_combined_sum = std(dq_dt_0_combined_sum),
-    dq_dt_0_againstRun_sum = std(dq_dt_0_againstRun_sum),
-    dq_dt_0_againstPass_sum = std(dq_dt_0_againstPass_sum),
-    dq_dt_0_total_sum = std(dq_dt_0_total_sum),
-    oq_dt_0_sum = std(oq_dt_0_sum),
-    oq_rdt_0_sum = std(oq_rdt_0_sum),
-    qbq_dt_0_sum = std(qbq_dt_0_sum),
-    dq_ot_0_sum = std(dq_ot_0_sum),
-    dq_ot_0_againstRun_sum = std(dq_ot_0_againstRun_sum),
-    dq_ot_0_againstPass_sum = std(dq_ot_0_againstPass_sum),
-    
-    # oq_op_0_sum_time = oq_op_0_sum * exp(-4 * .data$elapsed_share),
-    dq_dt_0_combined_sum_time = dq_dt_0_combined_sum * exp(-4 * .data$elapsed_share),
-    # oq_op_0_sum_time = oq_op_0_sum * exp(-4 * .data$elapsed_share),
-    # dq_dt_0_combined_sum_time = dq_dt_0_combined_sum * exp(-4 * .data$elapsed_share),
-    oq_dt_0_sum_time = oq_dt_0_sum * exp(-4 * .data$elapsed_share),
-    dq_ot_0_sum_time = dq_ot_0_sum * exp(-4 * .data$elapsed_share),
-    
     ### for WP models
-    e_score_diff = ep00 + score_differential,
-    eScoreTimeRatio = (e_score_diff)/(game_seconds_remaining + 1),
     scoreTimeRatio = compute_scoreTimeRatio(score_differential, game_seconds_remaining),
     utm = as.numeric(half_seconds_remaining <= 120),
     not_utm = 1-utm,
     gtg = (yardline_100 <= 10),
-  
     half_sec_rem_std = 1-(half_seconds_remaining/1800), ### in [0,1] where 0 is start and 1 is end.
-    
     ### features for Lock and Nettleton WP
     AdjustedScore_LN = score_differential / sqrt(game_seconds_remaining + 1),
-    total_score = posteam_score + defteam_score
-  )  %>%
+    total_score = posteam_score + defteam_score,
+    ### market-derived offensive and defensive qualities
+    market_OQOT_minus_DQDT = (total_line + -posteam_spread) / 2,
+    market_OQDT_minus_DQOT = (total_line - -posteam_spread) / 2,
+    market_OQOT_minus_DQDT_std = std(market_OQOT_minus_DQDT),
+    market_OQDT_minus_DQOT_std = std(market_OQDT_minus_DQOT),
+  ) %>%
   ### fix era numeric column
   mutate(era_A = case_when(era0==1~0, era1==1~1, era2==1~2, era3==1~3, era4==1~4, TRUE~NA_real_)) %>%
   mutate(era_B = case_when(era0==1~0, era1==1~1, era2==1~2, era3==1|era4==1~3, TRUE~NA_real_)) %>%
@@ -72,6 +40,19 @@ data_full_0A =
   left_join(
     data_full_0 %>% distinct(game_id, drive) %>% mutate(drive_id = 1:n())
   )
+
+### look at the standardizations
+mean(data_full_0A$market_OQOT_minus_DQDT)
+sd(data_full_0A$market_OQOT_minus_DQDT)
+mean(data_full_0A$market_OQDT_minus_DQOT)
+sd(data_full_0A$market_OQDT_minus_DQOT)
+
+# ### check
+# temp = data_full_0 %>% distinct(
+#   game_id, total_line, posteam, defteam,
+#   posteam_spread, market_OQOT_minus_DQDT, market_OQDT_minus_DQOT,
+#   market_OQOT_minus_DQDT_std, market_OQDT_minus_DQOT_std,
+# ) 
 
 ###
 data_full_AA = data_full_0A %>%
@@ -116,14 +97,14 @@ print(paste(
 fg_df = 
   data_full_WP %>%
   filter(field_goal_attempt == 1) %>%
-  select(row_idx, field_goal_attempt, fg_made, yardline_100, posteam, season, week, kicker_name, kq_0_sum_std) %>%
+  select(row_idx, field_goal_attempt, fg_made, yardline_100, posteam, season, week, kicker_name, kq) %>%
   filter(yardline_100 <= 50) 
 tail(fg_df)
 
 punt_df = 
   data_full_WP %>%
   filter(punt_attempt == 1) %>%
-  select(row_idx, yardline_100, next_ydl, posteam, season, week, punter_name, pq_0_sum_std) %>%
+  select(row_idx, yardline_100, next_ydl, posteam, season, week, punter_name, pq) %>%
   filter(yardline_100 >= 30)
 tail(punt_df)
 
@@ -131,7 +112,8 @@ go_df =
   data_full_WP %>%
   filter(down == 3 | down == 4) %>%
   drop_na(pass_or_rush) %>%
-  select(row_idx, season, posteam_spread, qbq_ot_0_sum, oq_rot_0_total_sum, dq_dt_0_againstPass_sum, dq_dt_0_againstRun_sum, yardline_100, down, pass_or_rush, ydstogo, yards_gained) %>%
+  select(row_idx, season, posteam_spread, market_OQDT_minus_DQOT, market_OQOT_minus_DQDT_std,
+         yardline_100, down, pass_or_rush, ydstogo, yards_gained) %>%
   mutate(convert = as.numeric(yards_gained >= ydstogo))
 go_df
 
@@ -164,9 +146,9 @@ all_fourth_downs$puntp = as.numeric(all_fourth_downs$decision_actual == "Punt")
 tail(
   all_fourth_downs %>% select(
     row_idx, posteam, season, posteam_coach, decision_actual,label_decision_actual,
-    # kicker_player_name, punter_player_name,
+    kicker_player_name, punter_player_name,
     yardline_100, ydstogo, down, score_differential, posteam_spread, game_seconds_remaining,
-    fgp, puntp
+    # fgp, puntp, kq, pq,
   )
 )
 
@@ -194,9 +176,10 @@ ALL_fourth_downs$puntp = as.numeric(ALL_fourth_downs$decision_actual == "Punt")
 tail(
   ALL_fourth_downs %>% select(
     row_idx, posteam, season, posteam_coach, decision_actual,label_decision_actual,
-    # kicker_player_name, punter_player_name,
+    kicker_player_name, punter_player_name,
     yardline_100, ydstogo, down, score_differential, posteam_spread, game_seconds_remaining,
-    fgp, puntp
+    fgp, puntp, 
+    # kq, pq,
   )
 )
 

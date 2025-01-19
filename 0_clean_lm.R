@@ -132,21 +132,21 @@ smooth_me2 <- function(yardline_100, v, df=8) {
 
 ### plot our field goal probability model
 plot_fg_prob_by_kq <- function(fg_model, kq=NULL) {
-  kq_breaks = seq(-1,1,length=7)
+  kq_breaks = seq(-2,2,length=7)
   fg_plot_df = tibble()
   if (is.null(kq)) {
     for (kq in kq_breaks) {
-      fg_plot_df = bind_rows(fg_plot_df, tibble(yardline_100 = 1:99, kq_0_sum_std = kq))
+      fg_plot_df = bind_rows(fg_plot_df, tibble(yardline_100 = 1:99, kq = kq))
     }
   } else {
-    fg_plot_df = tibble(yardline_100 = 1:99, kq_0_sum_std = kq)
+    fg_plot_df = tibble(yardline_100 = 1:99, kq = kq)
   }
   
   fg_model_plot = fg_plot_df %>%
     mutate(fgd = yardline_100 + 17) %>%
     mutate(p = predict(fg_model, ., type="response")) %>%
-    mutate(color_col = factor(round(kq_0_sum_std,2))) %>%
-    mutate(color_col = fct_reorder(color_col, -1*kq_0_sum_std)) %>%
+    mutate(color_col = factor(round(kq,2))) %>%
+    mutate(color_col = fct_reorder(color_col, -1*kq)) %>%
     ggplot(aes(x = yardline_100, y = p, color = color_col)) +
     geom_line(linewidth=1) +
     ylab("field goal make probability") + 
@@ -172,19 +172,19 @@ plot_fg_prob_by_kq <- function(fg_model, kq=NULL) {
 
 ### plot our punt expected next yardline model
 plot_punt_eny_by_pq <- function(punt_model, pq=NULL) {
-  pq_breaks = seq(-1,1,length=7)
+  pq_breaks = seq(-2,2,length=7)
   punt_plot_df = tibble()
   if (is.null(pq)) {
     for (pq in pq_breaks) {
-      punt_plot_df = bind_rows(punt_plot_df, tibble(yardline_100 = 30:99, pq_0_sum_std = pq))
+      punt_plot_df = bind_rows(punt_plot_df, tibble(yardline_100 = 30:99, pq = pq))
     }
   } else {
-    punt_plot_df = tibble(yardline_100 = 30:99, pq_0_sum_std = pq)
+    punt_plot_df = tibble(yardline_100 = 30:99, pq = pq)
   }
   punt_model_plot = punt_plot_df %>%
     mutate(p = predict(punt_model, ., type="response")) %>%
-    mutate(color_col = factor(round(pq_0_sum_std,2))) %>%
-    mutate(color_col = fct_reorder(color_col, -1*pq_0_sum_std)) %>%
+    mutate(color_col = factor(round(pq,2))) %>%
+    mutate(color_col = fct_reorder(color_col, -1*pq)) %>%
     ggplot(aes(x = yardline_100, y = p, color = color_col)) +
     geom_line(size=1) +
     ylab("expected next yardline") + 
@@ -204,448 +204,57 @@ plot_punt_eny_by_pq <- function(punt_model, pq=NULL) {
 }
 
 ### plot our conversion probability model
-plot_conv_prob_by_tq <- function(conv_prob_model) {
-  
-  plot_conv_prob_model_varyQ <- function(go_plot_o_df_p, title="") {
-    go_model_o_plot_ = go_plot_o_df_p %>%
-      mutate(color_col = factor(round(qbq_ot_0_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*qbq_ot_0_sum)) %>%
-      ggplot(aes(x = ydstogo, y = p, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      ylab("conversion probability") + xlab("yards to go") +
-      labs(color=" quarterback\n quality", title=title) +
-      scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    
-    go_model_o_plot_
+plot_conv_prob_momd <- function(conv_prob_model) {
+  pq_breaks = seq(-2,2,length=7)
+  punt_plot_df = tibble()
+  for (pq in pq_breaks) {
+    punt_plot_df = bind_rows(punt_plot_df, tibble(ydstogo = 1:20, down=4, market_OQOT_minus_DQDT_std = pq))
   }
-  
-  plot_conv_prob_model_varyO <- function(go_plot_o_df_p, title="") {
-    go_model_o_plot_ = go_plot_o_df_p %>%
-      mutate(color_col = factor(round(oq_rot_0_total_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*oq_rot_0_total_sum)) %>%
-      ggplot(aes(x = ydstogo, y = p, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      ylab("conversion probability") + xlab("yards to go") +
-      labs(color=" offensive\n quality\n of the rest\n of the\n offensive\n team", title=title) +
-      scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    
-    go_model_o_plot_
-  }
-  
-  plot_conv_prob_model_varyDP <- function(go_plot_d_df_p, title="") {
-    go_model_d_plot = go_plot_d_df_p %>%
-      mutate(color_col = factor(round(dq_dt_0_againstPass_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*dq_dt_0_againstPass_sum)) %>%
-      ggplot(aes(x = ydstogo, y = p, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      ylab("conversion probability") + xlab("yards to go") +
-      labs(color=" defensive\n quality\n against\n the pass", title=title) +
-      scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    go_model_d_plot
-  }
-  
-  plot_conv_prob_model_varyDR <- function(go_plot_d_df_p, title="") {
-    go_model_d_plot = go_plot_d_df_p %>%
-      mutate(color_col = factor(round(dq_dt_0_againstRun_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*dq_dt_0_againstRun_sum)) %>%
-      ggplot(aes(x = ydstogo, y = p, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      ylab("conversion probability") + xlab("yards to go") +
-      labs(color=" defensive\n quality\n against\n the run", title=title) +
-      scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    go_model_d_plot
-  }
-  
-  
-  # for (ydl in c(4,7,10,15,40,50,70,95)) {
-  # for (ydl in c(40)) {
-  {
-    tq_breaks = round(seq(-1,1,length=9),2)
-    go_plot_q_df = tibble()
-    go_plot_o_df = tibble()
-    go_plot_dp_df = tibble()
-    go_plot_dr_df = tibble()
-    max_ytg = 40
-    ydl = 40 #FIXME
-    
-    for (tq in tq_breaks) {
-      go_plot_q_df = bind_rows(go_plot_q_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = tq, oq_rot_0_total_sum = 0, dq_dt_0_againstPass_sum = 0, dq_dt_0_againstRun_sum = 0, down=4))
-      go_plot_o_df = bind_rows(go_plot_o_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = 0, oq_rot_0_total_sum = tq, dq_dt_0_againstPass_sum = 0, dq_dt_0_againstRun_sum = 0, down=4))
-      go_plot_dp_df = bind_rows(go_plot_dp_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = 0, oq_rot_0_total_sum = 0, dq_dt_0_againstPass_sum = tq, dq_dt_0_againstRun_sum = 0, down=4))
-      go_plot_dr_df = bind_rows(go_plot_dr_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = 0, oq_rot_0_total_sum = 0, dq_dt_0_againstPass_sum = 0, dq_dt_0_againstRun_sum = tq, down=4))
-    }
-    
-    ###################################################################################
-    
-    qbtib2 = bind_rows(
-      bind_cols(
-        go_plot_q_df %>% mutate(p = predict(go_model_fit, ., type="response")),
-        model = ""
-      )
-    )
-    oqtib2 = bind_rows(
-      bind_cols(
-        go_plot_o_df %>% mutate(p = predict(go_model_fit, ., type="response")),
-        # model = "logistic regression (best)"
-        model = ""
-      )
-    )
-    dpqtib2 = bind_rows(
-      bind_cols(
-        go_plot_dp_df %>% mutate(p = predict(go_model_fit, ., type="response")),
-        # model = "logistic regression (best)"
-        model = ""
-      )
-    )
-    drqtib2 = bind_rows(
-      bind_cols(
-        go_plot_dr_df %>% mutate(p = predict(go_model_fit, ., type="response")),
-        # model = "logistic regression (best)"
-        model = ""
-      )
-    )
-    
-    pq2 = plot_conv_prob_model_varyQ(qbtib2)
-    pq2
-    po2 = plot_conv_prob_model_varyO(oqtib2)
-    po2
-    pdp2 = plot_conv_prob_model_varyDP(dpqtib2)
-    pdp2
-    pdr2 = plot_conv_prob_model_varyDR(drqtib2)
-    pdr2
-    pqod2 = cowplot::plot_grid(pq2, po2, pdp2, pdr2, nrow=2)
-    pqod2
-  }
-}
-
-plot_conv_1 <- function(conv_model, qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_0_againstPass_sum=0, dq_dt_0_againstRun_sum=0) {
-  plot_conv = 
-    expand.grid(yardline_100 = 1:99, ydstogo=1:10) %>%
-    # expand.grid(yardline_100 = 1:93, ydstogo=c(1,2,3,4,10)) %>%
-    filter(0 < yardline_100 - ydstogo & yardline_100 + ydstogo < 100) %>%
-    filter(0 < yardline_100 - ydstogo & yardline_100 - ydstogo < 100) %>%
-    mutate(qbq_ot_0_sum=qbq_ot_0_sum, oq_rot_0_total_sum=oq_rot_0_total_sum, 
-           dq_dt_0_againstPass_sum=dq_dt_0_againstPass_sum, dq_dt_0_againstRun_sum=dq_dt_0_againstRun_sum, 
-           down=4) %>%
-    mutate(p_conv = predict(conv_model, ., type="response")) %>%
-    ggplot(aes(x = yardline_100, y=p_conv, color=factor(ydstogo))) +
+  punt_model_plot = 
+    punt_plot_df %>%
+    mutate(p = predict(conv_prob_model, ., type="response")) %>%
+    mutate(color_col = factor(round(market_OQOT_minus_DQDT_std,2))) %>%
+    mutate(color_col = fct_reorder(color_col, -1*market_OQOT_minus_DQDT_std)) %>%
+    ggplot(aes(x = ydstogo, y = p, color = color_col)) +
     geom_line(linewidth=1) +
-    ylab("conversion probability") +
-    xlab("yards to opponent endzone") + 
-    # xlab("yardline") +
-    scale_x_continuous(breaks=seq(0,100,by=10)) +
+    ylab("conversion probability") + xlab("yards to go") +
+    labs(color=" market-\n derived\n off. quality\n minus\n def. quality") +
     scale_y_continuous(breaks=seq(0,1,by=0.05)) +
-    labs(color=" yards\n to go") +
-    scale_colour_manual(values = rev(c(
-      rev(brewer.pal(name="Blues",n=9)[5:9]),
-      # brewer.pal(name="Purples",n=9)[6:9],
-      rev(brewer.pal(name="Reds",n=9)[3:7])
-    ))) +
+    scale_x_continuous(breaks=seq(0,40,by=2)) +
     theme(
       axis.title = element_text(size=27.5),
       axis.text = element_text(size=20),
-      legend.title = element_text(size=27.5),
+      legend.title = element_text(size=20),
       legend.text = element_text(size=20),
-      strip.text.x = element_text(size = 20),
-    ) 
-  plot_conv
+    ) +
+    scale_colour_manual(values = brewer.pal(name="PuRd",n=9)[3:11])
+  punt_model_plot
 }
 
-plot_conv_2 <- function(conv_model, qbq_ot_0_sum=0, oq_rot_0_total_sum=0, dq_dt_0_againstPass_sum=0, dq_dt_0_againstRun_sum=0) {
-  plot_conv = 
-    expand.grid(yardline_100 = 1:99, ydstogo=1:15) %>%
-    filter(0 < yardline_100 - ydstogo & yardline_100 + ydstogo < 100) %>%
-    filter(0 < yardline_100 - ydstogo & yardline_100 - ydstogo < 100) %>%
-    mutate(posteam_spread = 0) %>% #FIXME
-    mutate(qbq_ot_0_sum=qbq_ot_0_sum, oq_rot_0_total_sum=oq_rot_0_total_sum, 
-           dq_dt_0_againstPass_sum=dq_dt_0_againstPass_sum, dq_dt_0_againstRun_sum=dq_dt_0_againstRun_sum, 
-           down=4) %>%
-    mutate(p_conv = predict(conv_model, ., type="response")) %>%
-    group_by(ydstogo) %>%
-    summarise(
-      p_conv = mean(p_conv),
-    ) %>%
-    ggplot() +
-    # geom_col(aes(x=ydstogo,y=p_conv, fill=-p_conv), show.legend = FALSE) +
-    geom_col(aes(x=ydstogo,y=p_conv), fill="black") +
-    scale_fill_gradient2(low = muted("red"),
-                         # mid ="white",
-                         high = muted("black"),) +
-    ylab("conversion probability") +
-    xlab("yards to go") +
-    scale_x_continuous(breaks=seq(0,100,by=2)) +
-    scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-    scale_colour_manual(values = rev(c(
-      rev(brewer.pal(name="Blues",n=9)[5:9]),
-      # brewer.pal(name="Purples",n=9)[6:9],
-      rev(brewer.pal(name="Reds",n=9)[3:7])
-    ))) +
-    theme(
-      axis.title = element_text(size=27.5),
-      axis.text = element_text(size=20),
-      legend.title = element_text(size=27.5),
-      legend.text = element_text(size=20),
-      strip.text.x = element_text(size = 20),
-    )
-  plot_conv
-}
+plot_conv_prob_1 <- function(conv_prob_model, momds) {
+  punt_plot_df = tibble(ydstogo = 1:20, down=4, market_OQOT_minus_DQDT_std = momds)
 
-### plot our conversion expected outcome models
-plot_go_exp_outcome_1 <- function(
-    conv_model, success=TRUE, qbq_ot_0_sum=0, oq_rot_0_total_sum=0, 
-    dq_dt_0_againstPass_sum=0, dq_dt_0_againstRun_sum=0) {
-  plot_conv = 
-    expand.grid(yardline_100 = 1:99, ydstogo=1:10) %>%
-    filter(0 < yardline_100 - ydstogo & yardline_100 + ydstogo < 100) %>%
-    filter(0 < yardline_100 - ydstogo & yardline_100 - ydstogo < 100) %>%
-    mutate(qbq_ot_0_sum=qbq_ot_0_sum, oq_rot_0_total_sum=oq_rot_0_total_sum, 
-           dq_dt_0_againstPass_sum=dq_dt_0_againstPass_sum, dq_dt_0_againstRun_sum=dq_dt_0_againstRun_sum, 
-           down=4) %>%
-    mutate(E_outcome = predict(conv_model, .)) %>%
-    ggplot(aes(x = yardline_100, y=E_outcome, color=factor(ydstogo))) +
+  punt_model_plot = 
+    punt_plot_df %>%
+    mutate(p = predict(conv_prob_model, ., type="response")) %>%
+    mutate(color_col = factor(round(market_OQOT_minus_DQDT_std,2))) %>%
+    mutate(color_col = fct_reorder(color_col, -1*market_OQOT_minus_DQDT_std)) %>%
+    ggplot(aes(x = ydstogo, y = p, color = color_col)) +
     geom_line(linewidth=1) +
-    ylab("expected yards gained") +
-    xlab("yards to opponent endzone") +
-    # xlab("yardline") +
-    scale_x_continuous(breaks=seq(0,100,by=10)) +
-    labs(color=" yards\n to go", 
-         subtitle= paste0("given a ", if (success) "successful" else "failed",  " conversion")) +
-    scale_colour_manual(values = rev(c(
-      rev(brewer.pal(name="Blues",n=9)[5:9]),
-      # brewer.pal(name="Purples",n=9)[6:9],
-      rev(brewer.pal(name="Reds",n=9)[3:7])
-    ))) +
+    ylab("conversion probability") + xlab("yards to go") +
+    labs(color=" market-\n derived\n off. quality\n minus\n def. quality") +
+    scale_y_continuous(breaks=seq(0,1,by=0.05)) +
+    scale_x_continuous(breaks=seq(0,40,by=2)) +
     theme(
       axis.title = element_text(size=27.5),
       axis.text = element_text(size=20),
-      legend.title = element_text(size=27.5),
+      legend.title = element_text(size=20),
       legend.text = element_text(size=20),
-      strip.text.x = element_text(size = 20),
-    ) 
-  plot_conv
+    ) +
+    scale_colour_manual(values = brewer.pal(name="PuRd",n=9)[3:11])
+  punt_model_plot
 }
 
-plot_go_exp_outcome_by_tq <- function(conv_model, success=TRUE) {
-  
-  plot_conv_prob_model_varyQ <- function(go_plot_o_df_p, title="") {
-    go_model_o_plot_ = go_plot_o_df_p %>%
-      mutate(color_col = factor(round(qbq_ot_0_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*qbq_ot_0_sum)) %>%
-      ggplot(aes(x = ydstogo, y = E_outcome, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      ylab("expected yards gained") +
-      xlab("yards to go") +
-      labs(color=" quarterback\n quality", title=title) +
-      # scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    
-    go_model_o_plot_
-  }
-  
-  plot_conv_prob_model_varyO <- function(go_plot_o_df_p, title="") {
-    go_model_o_plot_ = go_plot_o_df_p %>%
-      mutate(color_col = factor(round(oq_rot_0_total_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*oq_rot_0_total_sum)) %>%
-      ggplot(aes(x = ydstogo, y = E_outcome, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      # ylab("conversion probability") + 
-      xlab("yards to go") +
-      labs(color=" offensive\n quality\n of the rest\n of the\n offensive team", title=title) +
-      ylab("expected yards gained") +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    
-    go_model_o_plot_
-  }
-  
-  plot_conv_prob_model_varyDP <- function(go_plot_d_df_p, title="") {
-    go_model_d_plot = go_plot_d_df_p %>%
-      mutate(color_col = factor(round(dq_dt_0_againstPass_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*dq_dt_0_againstPass_sum)) %>%
-      ggplot(aes(x = ydstogo, y = E_outcome, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      # ylab("conversion probability") +
-      xlab("yards to go") +
-      labs(color=" defensive\n quality\n against\n the pass", title=title) +
-      ylab("expected yards gained") +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    go_model_d_plot
-  }
-  
-  plot_conv_prob_model_varyDR <- function(go_plot_d_df_p, title="") {
-    go_model_d_plot = go_plot_d_df_p %>%
-      mutate(color_col = factor(round(dq_dt_0_againstRun_sum,2))) %>%
-      mutate(color_col = fct_reorder(color_col, -1*dq_dt_0_againstRun_sum)) %>%
-      ggplot(aes(x = ydstogo, y = E_outcome, color = color_col)) +
-      # facet_wrap(~model) +
-      geom_line(size=1) +
-      ylab("expected yards gained") +
-      xlab("yards to go") +
-      labs(color=" defensive\n quality\n against\n the run", title=title) +
-      # scale_y_continuous(breaks=seq(0,1,by=0.1)) +
-      scale_x_continuous(breaks= if (ydl==4) {seq(0,4,by=1)} else if (ydl==10) {seq(0,10,by=2)}else {seq(0,100,by=4)} ) +
-      theme(
-        axis.title = element_text(size=27.5),
-        axis.text = element_text(size=20),
-        legend.title = element_text(size=27.5),
-        legend.text = element_text(size=20),
-        strip.text.x = element_text(size = 20),
-      ) +
-      scale_colour_manual(values = gradient1) +
-      theme(
-        axis.title = element_text(size=30)
-      )
-    go_model_d_plot
-  }
-  
-  
-  # for (ydl in c(4,7,10,15,40,50,70,95)) {
-  # for (ydl in c(40)) {
-  {
-    tq_breaks = round(seq(-1,1,length=9),2)
-    go_plot_q_df = tibble()
-    go_plot_o_df = tibble()
-    go_plot_dp_df = tibble()
-    go_plot_dr_df = tibble()
-    max_ytg = 40
-    ydl = 40 #FIXME
-    
-    for (tq in tq_breaks) {
-      go_plot_q_df = bind_rows(go_plot_q_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = tq, oq_rot_0_total_sum = 0, dq_dt_0_againstPass_sum = 0, dq_dt_0_againstRun_sum = 0, down=4))
-      go_plot_o_df = bind_rows(go_plot_o_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = 0, oq_rot_0_total_sum = tq, dq_dt_0_againstPass_sum = 0, dq_dt_0_againstRun_sum = 0, down=4))
-      go_plot_dp_df = bind_rows(go_plot_dp_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = 0, oq_rot_0_total_sum = 0, dq_dt_0_againstPass_sum = tq, dq_dt_0_againstRun_sum = 0, down=4))
-      go_plot_dr_df = bind_rows(go_plot_dr_df, tibble(ydstogo = as.numeric(1:min(ydl, max_ytg)), yardline_100 = ydl, qbq_ot_0_sum = 0, oq_rot_0_total_sum = 0, dq_dt_0_againstPass_sum = 0, dq_dt_0_againstRun_sum = tq, down=4))
-    }
-    
-    ###################################################################################
-    
-    qbtib2 = bind_rows(
-      bind_cols(
-        go_plot_q_df %>% mutate(E_outcome = predict(conv_model, .)),
-        model = ""
-      )
-    )
-    oqtib2 = bind_rows(
-      bind_cols(
-        go_plot_o_df %>% mutate(E_outcome = predict(conv_model, .)),
-        # model = "logistic regression (best)"
-        model = ""
-      )
-    )
-    dpqtib2 = bind_rows(
-      bind_cols(
-        go_plot_dp_df %>% mutate(E_outcome = predict(conv_model, .)),
-        # model = "logistic regression (best)"
-        model = ""
-      )
-    )
-    drqtib2 = bind_rows(
-      bind_cols(
-        go_plot_dr_df %>% mutate(E_outcome = predict(conv_model, .)),
-        # model = "logistic regression (best)"
-        model = ""
-      )
-    )
-    
-    pq2 = plot_conv_prob_model_varyQ(qbtib2)
-    pq2
-    po2 = plot_conv_prob_model_varyO(oqtib2)
-    po2
-    pdp2 = plot_conv_prob_model_varyDP(dpqtib2)
-    pdp2
-    pdr2 = plot_conv_prob_model_varyDR(drqtib2)
-    pdr2
-    pqod2 = cowplot::plot_grid(pq2, po2, pdp2, pdr2, nrow=1)
-    pqod2
-  }
-}
 
 ######################
 ### Loss Functions ###
@@ -789,5 +398,10 @@ sample_one_play_per_epoch <- function(dataset, seed=NA) {
   if (!is.na(seed)) set.seed(seed)
   dataset %>% group_by(epoch) %>% slice_sample(n=1)
 }
+
+### standardize some covariates 
+# std <- function(x, mu, sigma) { (x-mu) / (2*sigma) }
+# std <- function(x) { (x-mean(x,.na.rm=TRUE)) / (2*sd(x,na.rm=TRUE)) }
+std <- function(x) { (x-mean(x,.na.rm=TRUE)) / (sd(x,na.rm=TRUE)) }
 
 
