@@ -28,7 +28,7 @@ source("header.R")
         sliderInput("total_score", "total score", min = 0, max = 120, value = 29, step=1, pre = ""),
         numericInput("game_seconds_remaining", "game seconds remaining", min = 0, max = 3600, value = 720, step=1),
         sliderInput("posteam_spread", "pre-game point spread (of the offensive team)", min = -17, max = 17, value = 0, step=0.5, pre = ""),
-        sliderInput("total_line", "pre-game total points over/under line", min = 0, max = 125, value = 44, step=1, pre = ""),
+        sliderInput("total_line", "pre-game total points over/under line", min = 0, max = 125, value = 44, step=0.5, pre = ""),
         sliderInput("yardline", "yardline", min = 1, max = 99, value = 50, step=1, pre = ""),
         sliderInput("ydstogo", "yards to go", min = 1, max = 15, value = 3, step=1, pre = ""),
         selectInput("receive_2h_ko", "receive second half kickoff", choices = c("yes", "no"), selected="yes"),
@@ -47,7 +47,7 @@ source("header.R")
         # sliderInput("oqot_minus_dq_input", "offensive team's quarterback quality", min=std_var_min, max=std_var_max, value = 0, step=std_var_step, pre = "")
         
         h4("Uncertainty Settings:"),
-        selectInput("num_B", "number of bootstrap samples", choices = c("0", "25", "100"), selected="25"),
+        selectInput("num_B", "number of bootstrap samples", choices = c("0", "25", "100"), selected="100"),
         # h5("• 0 bootstrap samples means no uncertainty plots."),
         # h5("• fewer bootstrap samples means faster runtime."),
         
